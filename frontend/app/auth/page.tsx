@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Mail, Loader2 } from "lucide-react";
+import { API_BASE_URL } from "@/lib/api";
 
 export default function AuthPage() {
   const router = useRouter();
@@ -23,7 +24,7 @@ export default function AuthPage() {
     setLoading(true);
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/auth/login", {
+      const res = await fetch(`${API_BASE_URL}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

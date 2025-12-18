@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { API_BASE_URL } from "@/lib/api";
 
 export default function SubjectsPage() {
   const router = useRouter();
@@ -16,8 +17,9 @@ export default function SubjectsPage() {
 
     async function checkPayment() {
       const res = await fetch(
-        `http://127.0.0.1:8000/payments/status?user_id=${userId}`
-      );
+  `${API_BASE_URL}/payments/status?user_id=${userId}`
+);
+
 
       const data = await res.json();
 

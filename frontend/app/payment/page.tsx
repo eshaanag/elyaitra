@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { API_BASE_URL } from "@/lib/api";
 
 export default function PaymentPage() {
   const router = useRouter();
@@ -9,7 +10,7 @@ export default function PaymentPage() {
     const userId = localStorage.getItem("user_id");
     if (!userId) return;
 
-    await fetch("http://127.0.0.1:8000/payments/record", {
+    await fetch(`${API_BASE_URL}/auth/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
