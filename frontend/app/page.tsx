@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -11,7 +11,7 @@ import {
   Clock,
   Brain,
   ArrowRight,
-  Menu
+  Menu,
 } from "lucide-react";
 
 /* ====== ASSETS ====== */
@@ -91,19 +91,20 @@ function Navbar() {
 function Hero() {
   return (
     <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
-      <Image
-        src={heroBg}
+      <img
+        src="/images/hero-bg.png"
         alt="Background"
-        fill
-        priority
-        className="object-cover opacity-60"
+        className="absolute inset-0 w-full h-full object-cover opacity-60"
       />
 
       <div className="absolute inset-0 bg-black/40" />
       <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/80 to-background" />
 
       <div className="relative z-10 container mx-auto px-6 text-center">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
           <h1 className="text-5xl md:text-7xl font-bold text-white mb-6">
             Learn Smarter. <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
@@ -112,8 +113,8 @@ function Hero() {
           </h1>
 
           <p className="text-gray-400 max-w-2xl mx-auto mb-10">
-            Exam-focused AI tutor for 1st semester CSE students.
-            No fluff. Only syllabus.
+            Exam-focused AI tutor for 1st semester CSE students. No fluff. Only
+            syllabus.
           </p>
 
           <Link
@@ -157,9 +158,7 @@ function ProblemSection() {
             className="p-8 rounded-2xl bg-white/5 border border-white/10"
           >
             <div className="mb-4 text-primary">{p.icon}</div>
-            <h3 className="text-xl font-bold text-white mb-2">
-              {p.title}
-            </h3>
+            <h3 className="text-xl font-bold text-white mb-2">{p.title}</h3>
             <p className="text-gray-400">{p.desc}</p>
           </div>
         ))}
