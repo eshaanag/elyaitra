@@ -1,0 +1,7 @@
+chroma_db/
+syllabus_data/
+.cache/
+venv/
+__pycache__/
+*.onnx
+*.bin
