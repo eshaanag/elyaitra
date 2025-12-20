@@ -28,14 +28,19 @@ export default function PaymentPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <div className="w-full max-w-md rounded-2xl border bg-card p-8 shadow-sm">
-        
+    <div
+      className="min-h-screen flex items-center justify-center px-4
+  bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-800"
+    >
+      <div
+        className="w-full max-w-md rounded-2xl bg-white/95 p-8
+  shadow-2xl ring-1 ring-black/5 backdrop-blur"
+      >
         <div className="mb-4 inline-block rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
           One-Time Payment
         </div>
 
-        <h1 className="text-2xl font-bold tracking-tight">
+        <h1 className="text-3xl font-semibold tracking-tight text-zinc-900">
           IA-2 Complete Access
         </h1>
 
@@ -44,7 +49,7 @@ export default function PaymentPage() {
         </p>
 
         <div className="my-6 text-center">
-          <span className="text-4xl font-bold">₹11</span>
+          <span className="text-5xl font-extrabold text-zinc-900">₹11</span>
         </div>
 
         <ul className="space-y-3 text-sm">
@@ -67,9 +72,7 @@ export default function PaymentPage() {
         </ul>
 
         {error && (
-          <p className="mt-4 text-sm text-red-500 text-center">
-            {error}
-          </p>
+          <p className="mt-4 text-sm text-red-500 text-center">{error}</p>
         )}
 
         <button
