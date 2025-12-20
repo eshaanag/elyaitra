@@ -15,10 +15,10 @@ export default function PaymentPage() {
     setError("");
 
     try {
-      // Temporary mock delay (replace with Razorpay later)
+      // Mock delay (replace with Razorpay later)
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      // After successful payment
+      // Redirect after successful payment
       router.push("/subjects");
     } catch (err) {
       setError("Connection error. Please try again.");
@@ -29,30 +29,40 @@ export default function PaymentPage() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center px-4
-  bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-800"
+      className="
+        relative w-full min-h-screen
+        flex items-center justify-center px-4
+        bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-800
+      "
     >
       <div
-        className="w-full max-w-md rounded-2xl bg-white/95 p-8
-  shadow-2xl ring-1 ring-black/5 backdrop-blur"
+        className="
+          w-full max-w-md rounded-2xl
+          bg-white p-8
+          shadow-2xl ring-1 ring-black/10
+        "
       >
+        {/* Badge */}
         <div className="mb-4 inline-block rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
           One-Time Payment
         </div>
 
+        {/* Heading */}
         <h1 className="text-3xl font-semibold tracking-tight text-zinc-900">
           IA-2 Complete Access
         </h1>
 
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="mt-2 text-sm text-zinc-600">
           One-time payment for internal assessment preparation.
         </p>
 
+        {/* Price */}
         <div className="my-6 text-center">
           <span className="text-5xl font-extrabold text-zinc-900">₹11</span>
         </div>
 
-        <ul className="space-y-3 text-sm">
+        {/* Features */}
+        <ul className="space-y-3 text-sm text-zinc-700">
           <li className="flex items-center gap-2">
             <span className="text-green-600">✓</span>
             All 4 core subjects
@@ -71,14 +81,24 @@ export default function PaymentPage() {
           </li>
         </ul>
 
+        {/* Error */}
         {error && (
-          <p className="mt-4 text-sm text-red-500 text-center">{error}</p>
+          <p className="mt-4 text-sm text-red-500 text-center">
+            {error}
+          </p>
         )}
 
+        {/* CTA */}
         <button
           onClick={handlePayment}
           disabled={loading}
-          className="mt-6 w-full rounded-xl bg-black py-3 text-white font-medium transition hover:opacity-90 disabled:opacity-60"
+          className="
+            mt-6 w-full rounded-xl
+            bg-zinc-900 py-3.5
+            text-white font-semibold
+            transition hover:bg-zinc-800
+            disabled:opacity-60
+          "
         >
           {loading ? "Processing..." : "Pay & Start"}
         </button>

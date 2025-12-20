@@ -103,11 +103,12 @@ html {
 body {
   min-height: 100%;
   margin: 0;
-  background-color: hsl(var(--background));
+  background-color: transparent;
   color: hsl(var(--foreground));
   font-family: var(--font-sans);
   overflow-x: hidden;
 }
+
 
 /* Headings use brand font */
 h1,
