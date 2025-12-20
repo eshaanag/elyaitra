@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 
 /* ====== ASSETS ====== */
-import logoImg from "@/public/images/logo.png";
+import logoImg from "@/public/elyaltra-logo.png";
 import heroBg from "@/public/images/hero-bg.png";
 
 /* ====== NAVBAR ====== */
