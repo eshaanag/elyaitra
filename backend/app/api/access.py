@@ -3,9 +3,18 @@ from app.db.database import get_db_connection
 
 router = APIRouter(prefix="/access", tags=["access"])
 
+#  TEMPORARY: Enable free access for IA-2
+# After IA-2, change this to False
+IA2_FREE_MODE = True
+
 
 @router.get("/subjects")
 def can_access_subjects(user_id: int):
+    # ✅ IA-2 FREE ACCESS MODE
+    if IA2_FREE_MODE:
+        return {"allowed": True}
+
+    # 🔒 Normal paid access logic (kept intact)
     conn = get_db_connection()
     cursor = conn.cursor()
 
