@@ -5,7 +5,7 @@ router = APIRouter(prefix="/access", tags=["access"])
 
 #  TEMPORARY: Enable free access for IA-2
 # After IA-2, change this to False
-IA2_FREE_MODE = True
+IA2_FREE_MODE = False
 
 
 @router.get("/subjects")
