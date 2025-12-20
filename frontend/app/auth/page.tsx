@@ -1,8 +1,3 @@
-// import { redirect } from "next/navigation";
-
-// export default function AuthPage() {
-//   redirect("/auth/login");
-// }
 "use client";
 
 import { useState } from "react";
@@ -27,6 +22,7 @@ export default function AuthPage() {
     try {
       setLoading(true);
 
+      // 1️⃣ LOGIN
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/login`,
         {
@@ -42,8 +38,26 @@ export default function AuthPage() {
 
       const data = await res.json();
       localStorage.setItem("user_id", String(data.user_id));
-      router.push("/subjects");
-    } catch {
+
+      // 2️⃣ CHECK ACCESS
+      const accessRes = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/access/subjects?user_id=${data.user_id}`
+      );
+
+      if (!accessRes.ok) {
+        throw new Error("Access check failed");
+      }
+
+      const accessData = await accessRes.json();
+
+      // 3️⃣ REDIRECT BASED ON PAYMENT
+      if (accessData.allowed) {
+        router.push("/subjects");
+      } else {
+        router.push("/payment");
+      }
+
+    } catch (err) {
       setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
