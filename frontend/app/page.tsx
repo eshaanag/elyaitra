@@ -62,16 +62,17 @@ function Nav() {
     </nav>
   );
 }
-
 /* ---------- HERO ---------- */
 
 function Hero() {
   return (
     <section className="relative min-h-screen pt-32 flex items-center justify-center overflow-hidden">
+      {/* Background layers */}
       <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-transparent to-transparent" />
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 blur-3xl rounded-full" />
       <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-500/10 blur-3xl rounded-full" />
 
+      {/* Content */}
       <div className="relative z-10 text-center max-w-4xl px-6">
         <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
           Learn Smarter.
@@ -81,18 +82,32 @@ function Hero() {
           </span>
         </h1>
 
-        <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
-          Exam-focused AI tutor for 1st semester CSE students. No fluff. No
-          distractions. Just marks.
-        </p>
+        {/* TEXT GROUP */}
+        <div className="mt-6">
+          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+            Exam-focused AI tutor for 1st semester CSE students. No fluff. No
+            distractions. Just marks.
+          </p>
 
-        <div className="flex flex-col sm:flex-row justify-center gap-4">
+          <p className="text-sm text-muted-foreground mt-4">
+            Made with ❤️ for <span className="font-medium">BMSIT CSE</span> &{" "}
+            <span className="font-medium">CSE (Chemistry Cycle)</span>.
+            <br className="sm:hidden" />
+            <span className="opacity-80">
+              (Sorry Physics Cycle folks — your turn is coming 😄)
+            </span>
+          </p>
+        </div>
+
+        {/* CTA GROUP */}
+        <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link
             href="/auth"
             className="h-12 px-8 rounded-md bg-primary text-primary-foreground inline-flex items-center justify-center text-lg transition hover:scale-[1.02]"
           >
             Get Started
           </Link>
+
           <Link
             href="/auth"
             className="h-12 px-8 rounded-md border inline-flex items-center justify-center text-lg hover:bg-muted transition"
@@ -104,15 +119,20 @@ function Hero() {
     </section>
   );
 }
-
 /* ---------- SUBJECTS ---------- */
 
 function Subjects() {
   const data = [
     ["AI & its Applications", "All garbage & useless theory concepts taught"],
-    ["Programming", "Not Snake! Learn how to write code in copy - that matters in college"],
+    [
+      "Programming",
+      "Not Snake! Learn how to write code in copy - that matters in college",
+    ],
     ["Chemistry", "Yes, its in CSE syllabus! no problem, we got you covered"],
-    ["Mechanical", "Course everyone chose because it's easy! we will make it easy for you"],
+    [
+      "Mechanical",
+      "Course everyone chose because it's easy! we will make it easy for you",
+    ],
   ];
 
   return (
@@ -218,7 +238,10 @@ function FAQ() {
   const faqs = [
     ["What subjects are covered?", "AI, Python, Chemistry, Mechanical."],
     ["Is this a subscription?", "No. ₹11 one-time payment."],
-    ["Is this ChatGPT?", "Unlike ChatGPT, Elyaitra is trained specifically on your university syllabus. Every answer is tailored to your exam pattern and what your professors expect."],
+    [
+      "Is this ChatGPT?",
+      "Unlike ChatGPT, Elyaitra is trained specifically on your university syllabus. Every answer is tailored to your exam pattern and what your professors expect.",
+    ],
     ["Can I use it on mobile?", "Yes. Works on any browser."],
     ["Will it go out of syllabus?", "No. It answers strictly from syllabus."],
   ];
