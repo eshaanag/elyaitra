@@ -1,46 +1,79 @@
 import os
-from app.ai_engine.chroma_client import get_chroma_client
+import chromadb
+from dotenv import load_dotenv
+from google import genai
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 # --------------------------------------------------
-# PATH SETUP (FIXED)
+# ENV
 # --------------------------------------------------
-# ingest.py is at:
-# backend/app/ai_engine/ingest.py
-# We need to go up 3 levels to reach project root
-BASE_DIR = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..", "..", "..")
+load_dotenv()
+client_genai = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+
+# --------------------------------------------------
+# PATHS
+# --------------------------------------------------
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CHROMA_PATH = os.path.join(BASE_DIR, "storage")
+DATA_PATH = os.path.join(BASE_DIR, "data")
+
+print("📁 Chroma path:", CHROMA_PATH)
+print("📁 Data path:", DATA_PATH)
+
+# --------------------------------------------------
+# CHROMA INIT
+# --------------------------------------------------
+client = chromadb.PersistentClient(path=CHROMA_PATH)
+
+# 🔥 DROP & RECREATE COLLECTION (SAFE WAY)
+if "data" in [c.name for c in client.list_collections()]:
+    print("🧹 Deleting old collection...")
+    client.delete_collection("data")
+
+collection = client.get_or_create_collection(name="data")
+
+# --------------------------------------------------
+# SPLITTER
+# --------------------------------------------------
+splitter = RecursiveCharacterTextSplitter(
+    chunk_size=300,
+    chunk_overlap=50
 )
 
-SYLLABUS_DIR = os.path.join(BASE_DIR, "syllabus_data")
+# --------------------------------------------------
+# GEMINI EMBEDDING FUNCTION
+# --------------------------------------------------
+def embed(text: str):
+    res = client_genai.models.embed_content(
+        model="text-embedding-004",
+        contents=text
+    )
+    return res.embeddings[0].values
 
+# --------------------------------------------------
+# INDEX FILES
+# --------------------------------------------------
+doc_id = 0
 
-def ingest_subject(subject: str):
-    subject_path = os.path.join(SYLLABUS_DIR, subject)
+for file in os.listdir(DATA_PATH):
+    if not file.endswith(".txt"):
+        continue
 
-    if not os.path.exists(subject_path):
-        print(f"❌ Subject folder not found: {subject_path}")
-        return
+    print("📄 Reading:", file)
+    path = os.path.join(DATA_PATH, file)
 
-    client = get_chroma_client()
-    collection = client.get_or_create_collection(name=subject)
+    with open(path, "r", encoding="utf-8") as f:
+        text = f.read().strip()
 
-    documents = []
-    ids = []
+    chunks = splitter.split_text(text)
 
-    for file in os.listdir(subject_path):
-        if file.endswith(".txt"):
-            file_path = os.path.join(subject_path, file)
-            with open(file_path, "r", encoding="utf-8") as f:
-                documents.append(f.read())
-                ids.append(f"{subject}_{file}")
+    for chunk in chunks:
+        collection.add(
+            documents=[chunk],
+            embeddings=[embed(chunk)],
+            metadatas=[{"source": file}],
+            ids=[f"doc_{doc_id}"]
+        )
+        doc_id += 1
 
-    if not documents:
-        print("⚠ No text files found in subject folder")
-        return
-
-    collection.add(documents=documents, ids=ids)
-    print(f"✅ Ingested {len(documents)} files into '{subject}'")
-
-
-if __name__ == "__main__":
-    ingest_subject("chemistry")
+print("✅ Re-indexing complete with Gemini embeddings")

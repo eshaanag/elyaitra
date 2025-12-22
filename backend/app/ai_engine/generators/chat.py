@@ -1,37 +1,89 @@
-from app.ai_engine.llm_client import LocalOllamaClient
-from app.ai_engine.retriever import retrieve_chunks
+import os
+from app.ai_engine.retriever import retrieve
+from app.ai_engine.llm_client import GeminiClient
 
-# Load strict system prompt once
-with open("app/ai_engine/prompts/chat.txt", "r", encoding="utf-8") as f:
-    PROMPT_TEMPLATE = f.read()
+# One Gemini client for generation
+llm = GeminiClient()
 
-# Initialize LLM once (DO NOT recreate per request)
-llm = LocalOllamaClient()
+# --------------------------------------------------
+# Load rules from chat.txt (SYSTEM PROMPT)
+# --------------------------------------------------
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PROMPT_PATH = os.path.join(BASE_DIR, "prompts", "chat.txt")
+
+with open(PROMPT_PATH, "r", encoding="utf-8") as f:
+    SYSTEM_PROMPT = f.read().strip()
+
+
+def is_question_about_subject(question: str, subject: str) -> bool:
+    """
+    Allows foundational concepts needed to study the subject.
+    Blocks questions belonging to other subjects.
+    """
+
+    prompt = f"""
+{SYSTEM_PROMPT}
+
+Answer only YES or NO.
+
+A student is studying the subject "{subject}".
+
+Is the following question EITHER:
+- a core topic of {subject}, OR
+- a basic foundational concept needed to understand {subject}?
+
+If it belongs mainly to a DIFFERENT subject, answer NO.
+
+Question: {question}
+"""
+
+    response = llm.generate(prompt).strip().upper()
+    return response.startswith("YES")
 
 
 def generate_chat_response(question: str, subject: str) -> str:
     """
-    Generate an answer strictly based on syllabus content.
-    Returns 'Not in syllabus' if no relevant chunks are found.
+    Subject-bounded RAG pipeline:
     """
 
-    # 1. Retrieve relevant syllabus chunks
-    chunks = retrieve_chunks(question, subject)
+    chunks = retrieve(question, subject)
 
-    # 2. If nothing retrieved → outside syllabus
+    # --------------------------------------------------
+    # Case 1: No syllabus context
+    # --------------------------------------------------
     if not chunks:
-        return "Not in syllabus"
+        if not is_question_about_subject(question, subject):
+            return "Not in syllabus"
 
-    # 3. Build context from retrieved chunks
+        prompt = f"""
+{SYSTEM_PROMPT}
+
+You are an exam-focused tutor for the subject {subject}.
+Answer clearly and concisely.
+Do NOT include content from other subjects.
+
+Question:
+{question}
+
+Answer:
+"""
+        return llm.generate(prompt)
+
+    # --------------------------------------------------
+    # Case 2: Syllabus context found (STRICT RAG)
+    # --------------------------------------------------
     context = "\n\n".join(chunks)
 
-    # 4. Inject context into strict prompt
-    prompt = PROMPT_TEMPLATE.format(
-        context=context,
-        question=question
-    )
+    prompt = f"""
+{SYSTEM_PROMPT}
 
-    # 5. Generate answer using the preloaded LLM
-    answer = llm.generate(prompt)
+--- SYLLABUS CONTEXT ---
+{context}
 
-    return answer.strip()
+--- QUESTION ---
+{question}
+
+--- ANSWER ---
+"""
+
+    return llm.generate(prompt)
