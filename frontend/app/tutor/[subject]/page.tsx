@@ -3,220 +3,130 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
-/* --------------------------------------------------
-   SUBJECT CONFIG
--------------------------------------------------- */
 const SUBJECTS: Record<string, { title: string; description: string }> = {
-  ai: {
-    title: "AI",
-    description: "Learn artificial intelligence with exam-focused explanations.",
-  },
-  programming: {
-    title: "Programming",
-    description: "Algorithms, logic, and coding for exams.",
-  },
   chemistry: {
     title: "Chemistry",
-    description: "Clear chemistry concepts with exam diagrams.",
-  },
-  mechanical: {
-    title: "Mechanical",
-    description: "Core mechanical engineering fundamentals.",
+    description: "Exam-focused chemistry tutor with diagrams and revision.",
   },
 };
 
-/* --------------------------------------------------
-   SUBJECT → UNITS
--------------------------------------------------- */
 const SUBJECT_UNITS: Record<string, string[]> = {
   chemistry: ["1", "2", "3", "4", "5"],
-  programming: ["1", "2", "3", "4"],
-  ai: ["1", "2", "3"],
-  mechanical: ["1", "2", "3", "4", "5"],
 };
 
-type Flowchart = {
-  title: string;
-  image: string;
-};
-
-type Flashcard = {
-  question: string;
-  answer: string;
-};
+type Message = { role: "user" | "assistant"; content: string };
+type Flowchart = { title: string; image: string };
 
 export default function TutorPage() {
-  const params = useParams();
+  const { subject } = useParams();
   const router = useRouter();
 
-  const subject = String(params.subject || "");
-  const subjectData = SUBJECTS[subject];
+  if (subject !== "chemistry") router.replace("/subjects");
 
-  useEffect(() => {
-    if (!subjectData) router.replace("/subjects");
-  }, [subjectData, router]);
+  const [tab, setTab] = useState<"chat" | "flowcharts">("chat");
+  const [unit, setUnit] = useState("3");
 
-  const [activeTab, setActiveTab] = useState<
-    "chat" | "flowcharts" | "flashcards"
-  >("chat");
+  // chat
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState("");
 
-  const [unit, setUnit] = useState("1");
-
+  // flowcharts
   const [flowcharts, setFlowcharts] = useState<Flowchart[]>([]);
-  const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
-  const [loadingFlowcharts, setLoadingFlowcharts] = useState(false);
-  const [loadingFlashcards, setLoadingFlashcards] = useState(false);
+  const [loading, setLoading] = useState(false);
 
+  // 🔥 FETCH FLOWCHARTS (FIXED)
   useEffect(() => {
-    const units = SUBJECT_UNITS[subject];
-    if (units?.length) setUnit(units[0]);
-  }, [subject]);
+    if (tab !== "flowcharts") return;
 
-  /* --------------------------------------------------
-     FETCH CONTENT (FIXED)
-  -------------------------------------------------- */
-  useEffect(() => {
     const userId = localStorage.getItem("user_id");
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
     if (!userId || !apiUrl) return;
 
-    if (activeTab === "flowcharts") {
-      setLoadingFlowcharts(true);
-      fetch(
-        `${apiUrl}/content/flowcharts?subject=${subject}&unit=${unit}&user_id=${userId}`
-      )
-        .then((res) => res.json())
-        .then((data) => {
-          setFlowcharts(Array.isArray(data) ? data : []);
-        })
-        .finally(() => setLoadingFlowcharts(false));
-    }
+    setLoading(true);
 
-    if (activeTab === "flashcards") {
-      setLoadingFlashcards(true);
-      fetch(
-        `${apiUrl}/content/flashcards?subject=${subject}&unit=${unit}&user_id=${userId}`
-      )
-        .then((res) => res.json())
-        .then((data) => {
-          setFlashcards(Array.isArray(data) ? data : []);
-        })
-        .finally(() => setLoadingFlashcards(false));
-    }
-  }, [activeTab, subject, unit]);
+    fetch(
+      `${apiUrl}/content/flowcharts?subject=chemistry&unit=${unit}&user_id=${userId}`
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("FLOWCHART DATA:", data);
+        if (Array.isArray(data)) setFlowcharts(data);
+      })
+      .finally(() => setLoading(false));
+  }, [tab, unit]);
 
-  if (!subjectData) return null;
+  function sendChat() {
+    if (!input.trim()) return;
+    setMessages((m) => [...m, { role: "user", content: input }]);
+    setMessages((m) => [
+      ...m,
+      { role: "assistant", content: "Exam-focused answer from syllabus." },
+    ]);
+    setInput("");
+  }
 
   return (
-    <div className="min-h-screen bg-background">
-      <main className="max-w-6xl mx-auto px-4 py-20">
-        {/* HERO */}
-        <div className="rounded-3xl p-10 mb-10 border border-white/10 bg-white/5">
-          <h1 className="text-4xl font-bold mb-3">{subjectData.title} Tutor</h1>
-          <p className="text-muted-foreground">{subjectData.description}</p>
-        </div>
+    <div className="min-h-screen bg-background p-10 max-w-6xl mx-auto">
+      <h1 className="text-4xl font-bold mb-4">Chemistry Tutor</h1>
 
-        {/* UNIT SELECT */}
-        <div className="mb-8 flex gap-3 items-center">
-          <span className="text-sm text-muted-foreground">Unit:</span>
-          <select
-            value={unit}
-            onChange={(e) => setUnit(e.target.value)}
-            className="rounded-md border border-white/10 bg-background px-3 py-2"
-          >
-            {SUBJECT_UNITS[subject]?.map((u) => (
-              <option key={u} value={u}>
-                Unit {u}
-              </option>
+      {/* UNIT */}
+      <select
+        value={unit}
+        onChange={(e) => setUnit(e.target.value)}
+        className="mb-6 px-3 py-2 border rounded"
+      >
+        {SUBJECT_UNITS.chemistry.map((u) => (
+          <option key={u} value={u}>
+            Unit {u}
+          </option>
+        ))}
+      </select>
+
+      {/* TABS */}
+      <div className="flex gap-4 mb-6">
+        <button onClick={() => setTab("chat")}>Chat</button>
+        <button onClick={() => setTab("flowcharts")}>Flowcharts</button>
+      </div>
+
+      {/* CHAT */}
+      {tab === "chat" && (
+        <div>
+          <div className="min-h-[200px] border p-4 mb-3">
+            {messages.map((m, i) => (
+              <p key={i}>
+                <b>{m.role}:</b> {m.content}
+              </p>
             ))}
-          </select>
+          </div>
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            className="border px-3 py-2 mr-2"
+          />
+          <button onClick={sendChat}>Send</button>
         </div>
+      )}
 
-        {/* TABS */}
-        <div className="flex gap-4 mb-10">
-          {[
-            { id: "chat", label: "Chat Tutor" },
-            { id: "flowcharts", label: "Exam Flowcharts" },
-            { id: "flashcards", label: "Flashcards" },
-          ].map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setActiveTab(t.id as any)}
-              className={`px-5 py-2 rounded-md ${
-                activeTab === t.id
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted"
-              }`}
-            >
-              {t.label}
-            </button>
+      {/* FLOWCHARTS */}
+      {tab === "flowcharts" && (
+        <div>
+          {loading && <p>Loading flowcharts…</p>}
+
+          {!loading && flowcharts.length === 0 && (
+            <p>No flowcharts for this unit.</p>
+          )}
+
+          {flowcharts.map((fc, i) => (
+            <div key={i} className="mt-6">
+              <h3 className="font-semibold mb-2">{fc.title}</h3>
+              <img
+                src={`${process.env.NEXT_PUBLIC_API_URL}${fc.image}`}
+                className="max-w-2xl border"
+              />
+            </div>
           ))}
         </div>
-
-        {/* FLOWCHARTS */}
-        {activeTab === "flowcharts" && (
-          <div className="rounded-3xl p-8 border border-white/10 bg-white/5">
-            {loadingFlowcharts ? (
-              <p className="text-muted-foreground">Loading flowcharts…</p>
-            ) : flowcharts.length > 0 ? (
-              <div className="space-y-8">
-                {flowcharts.map((fc, i) => (
-                  <div
-                    key={i}
-                    className="rounded-2xl p-6 border border-white/10 bg-background/60"
-                  >
-                    <h3 className="text-lg font-semibold mb-4">{fc.title}</h3>
-                    <img
-                      src={`${process.env.NEXT_PUBLIC_API_URL}${fc.image}`}
-                      alt={fc.title}
-                      className="rounded-xl border border-white/10 max-w-full md:max-w-3xl mx-auto"
-                    />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-muted-foreground">
-                Flowcharts for Unit {unit} will be added soon.
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* FLASHCARDS */}
-        {activeTab === "flashcards" && (
-          <div className="rounded-3xl p-8 border border-white/10 bg-white/5">
-            {loadingFlashcards ? (
-              <p className="text-muted-foreground">Loading flashcards…</p>
-            ) : flashcards.length > 0 ? (
-              <div className="grid md:grid-cols-2 gap-6">
-                {flashcards.map((fc, i) => (
-                  <Flashcard key={i} {...fc} />
-                ))}
-              </div>
-            ) : (
-              <p className="text-muted-foreground">
-                Flashcards for Unit {unit} will be added soon.
-              </p>
-            )}
-          </div>
-        )}
-      </main>
-    </div>
-  );
-}
-
-/* FLASHCARD */
-function Flashcard({ question, answer }: Flashcard) {
-  const [show, setShow] = useState(false);
-  return (
-    <div
-      onClick={() => setShow(!show)}
-      className="cursor-pointer rounded-xl p-6 border border-white/10 bg-background hover:bg-background/80"
-    >
-      <p className="text-sm">{show ? answer : question}</p>
-      <p className="mt-3 text-xs text-muted-foreground">
-        {show ? "Tap to hide answer" : "Tap to reveal answer"}
-      </p>
+      )}
     </div>
   );
 }
