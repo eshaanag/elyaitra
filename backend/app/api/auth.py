@@ -4,8 +4,10 @@ from app.db.database import get_db_connection
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
+
 class LoginRequest(BaseModel):
     email: str
+
 
 @router.post("/login")
 def login(data: LoginRequest):
@@ -13,20 +15,20 @@ def login(data: LoginRequest):
     cursor = conn.cursor()
 
     cursor.execute(
-        "SELECT * FROM users WHERE email = ?",
+        "SELECT id FROM users WHERE email = ?",
         (data.email,)
     )
     user = cursor.fetchone()
 
-    if not user:
+    if user:
+        user_id = user["id"]
+    else:
         cursor.execute(
             "INSERT INTO users (email) VALUES (?)",
             (data.email,)
         )
         conn.commit()
         user_id = cursor.lastrowid
-    else:
-        user_id = user["id"]
 
     conn.close()
 
@@ -34,12 +36,13 @@ def login(data: LoginRequest):
         "user_id": user_id,
         "email": data.email
     }
+
+
 @router.get("/me")
 def me(user_id: int):
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # Get user
     cursor.execute(
         "SELECT id, email FROM users WHERE id = ?",
         (user_id,)
@@ -50,13 +53,17 @@ def me(user_id: int):
         conn.close()
         raise HTTPException(status_code=404, detail="User not found")
 
-    # Check payment
     cursor.execute(
-        "SELECT 1 FROM payments WHERE user_id = ? LIMIT 1",
+        """
+        SELECT 1 FROM payments
+        WHERE user_id = ?
+        AND status = 'success'
+        LIMIT 1
+        """,
         (user_id,)
     )
-    payment = cursor.fetchone()
 
+    payment = cursor.fetchone()
     conn.close()
 
     return {
