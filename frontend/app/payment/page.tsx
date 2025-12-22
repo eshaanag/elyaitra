@@ -3,6 +3,16 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+const loadRazorpay = () => {
+  return new Promise((resolve) => {
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
+
 export default function PaymentPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -12,11 +22,55 @@ export default function PaymentPage() {
     setLoading(true);
     setError("");
 
+    const razorpayLoaded = await loadRazorpay();
+    if (!razorpayLoaded) {
+      setError("Payment service failed to load.");
+      setLoading(false);
+      return;
+    }
+
+    const userId = localStorage.getItem("user_id");
+    if (!userId) {
+      router.push("/auth");
+      return;
+    }
+
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      router.push("/subjects");
+      const orderRes = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/payments/create-order`,
+        { method: "POST" }
+      );
+
+      const order = await orderRes.json();
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: order.amount,
+        currency: "INR",
+        name: "Elyaitra",
+        description: "IA-2 Complete Access",
+        order_id: order.id,
+        handler: async () => {
+          await fetch(
+            `${process.env.NEXT_PUBLIC_API_BASE_URL}/payments/record`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                user_id: Number(userId),
+                amount: 50,
+              }),
+            }
+          );
+          router.push("/subjects");
+        },
+        theme: { color: "#18181b" },
+      };
+
+      const paymentObject = new (window as any).Razorpay(options);
+      paymentObject.open();
     } catch {
-      setError("Connection error. Please try again.");
+      setError("Payment failed. Try again.");
     } finally {
       setLoading(false);
     }
@@ -24,10 +78,8 @@ export default function PaymentPage() {
 
   return (
     <>
-      {/* 🔒 FULL-SCREEN BACKGROUND OVERRIDE */}
       <div className="fixed inset-0 -z-10 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-800" />
 
-      {/* PAGE CONTENT */}
       <div className="relative min-h-screen flex items-center justify-center px-4">
         <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl ring-1 ring-black/10">
           <div className="mb-4 inline-block rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
@@ -43,7 +95,7 @@ export default function PaymentPage() {
           </p>
 
           <div className="my-6 text-center">
-            <span className="text-5xl font-extrabold text-zinc-900">₹11</span>
+            <span className="text-5xl font-extrabold text-zinc-900">₹50</span>
           </div>
 
           <ul className="space-y-3 text-sm text-zinc-700">
