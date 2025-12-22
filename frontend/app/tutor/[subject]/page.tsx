@@ -71,24 +71,30 @@ export default function TutorPage() {
   useEffect(() => {
     const userId = getUserId();
 
+    // Not logged in → go to auth
     if (!userId) {
       router.replace("/auth");
       return;
     }
 
+    // Logged in → check payment
     fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/access/subjects?user_id=${userId}`
     )
       .then((res) => res.json())
       .then((data) => {
-        if (!data.allowed) {
+        // Explicitly unpaid → go to payment
+        if (data.allowed === false) {
           router.replace("/payment");
         }
+        // allowed === true → stay on tutor page
       })
       .catch(() => {
-        router.replace("/auth");
+        // DO NOTHING HERE
+        // Network/backend delay ≠ logout
       });
   }, [router]);
+
 
   /* --------------------------------------------------
      SUBJECT GUARD
@@ -223,11 +229,10 @@ export default function TutorPage() {
             <button
               key={tab}
               onClick={() => setActiveTab(tab as any)}
-              className={`px-5 py-2 rounded-md text-sm font-medium ${
-                activeTab === tab
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted"
-              }`}
+              className={`px-5 py-2 rounded-md text-sm font-medium ${activeTab === tab
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted"
+                }`}
             >
               {tab === "chat" && "Chat Tutor"}
               {tab === "flowcharts" && "Exam Flowcharts"}
@@ -249,16 +254,14 @@ export default function TutorPage() {
               {messages.map((msg, i) => (
                 <div
                   key={i}
-                  className={`mb-3 ${
-                    msg.role === "user" ? "text-right" : "text-left"
-                  }`}
+                  className={`mb-3 ${msg.role === "user" ? "text-right" : "text-left"
+                    }`}
                 >
                   <span
-                    className={`inline-block px-4 py-2 rounded-xl text-sm ${
-                      msg.role === "user"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted"
-                    }`}
+                    className={`inline-block px-4 py-2 rounded-xl text-sm ${msg.role === "user"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted"
+                      }`}
                   >
                     {msg.content}
                   </span>
