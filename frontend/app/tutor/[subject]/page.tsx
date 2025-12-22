@@ -35,6 +35,16 @@ const SUBJECTS: Record<
   },
 };
 
+/* --------------------------------------------------
+   SUBJECT → UNITS MAP (SYLLABUS STRUCTURE)
+-------------------------------------------------- */
+const SUBJECT_UNITS: Record<string, string[]> = {
+  chemistry: ["1", "2", "3", "4", "5"],
+  programming: ["1", "2", "3", "4"],
+  ai: ["1", "2", "3"],
+  mechanical: ["1", "2", "3", "4", "5"],
+};
+
 type Message = {
   role: "user" | "assistant";
   content: string;
@@ -80,21 +90,31 @@ export default function TutorPage() {
     "chat" | "flowcharts" | "flashcards"
   >("chat");
 
+  const [unit, setUnit] = useState<string>("1");
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
 
   const [flowcharts, setFlowcharts] = useState<Flowchart[]>([]);
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
 
+  /* --------------------------------------------------
+     RESET UNIT WHEN SUBJECT CHANGES
+  -------------------------------------------------- */
+  useEffect(() => {
+    const units = SUBJECT_UNITS[subject];
+    if (units && units.length > 0) {
+      setUnit(units[0]);
+    }
+  }, [subject]);
+
   if (!subjectData) return null;
 
   /* --------------------------------------------------
-     FETCH CONTENT ON TAB CHANGE
+     FETCH CONTENT
   -------------------------------------------------- */
   useEffect(() => {
     const userId = localStorage.getItem("user_id");
-    const unit = "loops"; // ✅ intentionally hardcoded for v1
-
     if (!userId) return;
 
     if (activeTab === "flowcharts") {
@@ -114,13 +134,13 @@ export default function TutorPage() {
         .then(setFlashcards)
         .catch(() => setFlashcards([]));
     }
-  }, [activeTab, subject]);
+  }, [activeTab, subject, unit]);
 
   /* --------------------------------------------------
-     MOCK CHAT RESPONSE (replace later)
+     MOCK CHAT RESPONSE (REPLACE LATER)
   -------------------------------------------------- */
   async function getTutorResponse(question: string) {
-    return `This is an exam-focused explanation based strictly on the ${subject.toUpperCase()} syllabus.`;
+    return `This explanation is strictly based on the ${subject.toUpperCase()} syllabus for Unit ${unit}.`;
   }
 
   function handleSend() {
@@ -137,21 +157,35 @@ export default function TutorPage() {
 
   return (
     <div className="relative min-h-screen bg-background overflow-hidden">
-      {/* Background glow */}
-      <div className="absolute top-[-15%] right-[-10%] w-[45%] h-[45%] bg-primary/10 rounded-full blur-[120px]" />
-      <div className="absolute bottom-[-15%] left-[-10%] w-[45%] h-[45%] bg-accent/10 rounded-full blur-[120px]" />
-
       <main className="relative z-10 max-w-6xl mx-auto px-4 py-20">
         {/* --------------------------------------------------
            SUBJECT HERO
         -------------------------------------------------- */}
-        <div className="rounded-3xl p-10 mb-14 border border-white/10 bg-white/5 backdrop-blur-xl">
+        <div className="rounded-3xl p-10 mb-10 border border-white/10 bg-white/5 backdrop-blur-xl">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
             {subjectData.title} Tutor
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl">
             {subjectData.description}
           </p>
+        </div>
+
+        {/* --------------------------------------------------
+           UNIT SELECTOR
+        -------------------------------------------------- */}
+        <div className="mb-8 flex items-center gap-3">
+          <span className="text-sm text-muted-foreground">Unit:</span>
+          <select
+            value={unit}
+            onChange={(e) => setUnit(e.target.value)}
+            className="rounded-md border border-white/10 bg-background px-3 py-2 text-sm"
+          >
+            {SUBJECT_UNITS[subject]?.map((u) => (
+              <option key={u} value={u}>
+                Unit {u}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* --------------------------------------------------
@@ -182,13 +216,11 @@ export default function TutorPage() {
            CHAT
         -------------------------------------------------- */}
         {activeTab === "chat" && (
-          <div className="rounded-3xl p-8 border border-white/10 bg-white/5 backdrop-blur-xl">
-            <h2 className="text-2xl font-semibold mb-6">Chat Tutor</h2>
-
+          <div className="rounded-3xl p-8 border border-white/10 bg-white/5">
             <div className="min-h-[260px] rounded-xl border border-white/10 bg-background/60 p-4 mb-4">
               {messages.length === 0 && (
                 <p className="text-muted-foreground">
-                  Ask your question from the syllabus.
+                  Ask a question from Unit {unit}.
                 </p>
               )}
 
@@ -234,14 +266,10 @@ export default function TutorPage() {
            FLOWCHARTS
         -------------------------------------------------- */}
         {activeTab === "flowcharts" && (
-          <div className="rounded-3xl p-8 border border-white/10 bg-white/5 backdrop-blur-xl">
-            <h2 className="text-2xl font-semibold mb-6">
-              Exam Flowcharts
-            </h2>
-
+          <div className="rounded-3xl p-8 border border-white/10 bg-white/5">
             {flowcharts.length === 0 ? (
               <p className="text-muted-foreground">
-                No flowcharts available for this unit.
+                No flowcharts available for Unit {unit}.
               </p>
             ) : (
               <div className="space-y-10">
@@ -266,14 +294,10 @@ export default function TutorPage() {
            FLASHCARDS
         -------------------------------------------------- */}
         {activeTab === "flashcards" && (
-          <div className="rounded-3xl p-8 border border-white/10 bg-white/5 backdrop-blur-xl">
-            <h2 className="text-2xl font-semibold mb-6">
-              Important Exam Questions
-            </h2>
-
+          <div className="rounded-3xl p-8 border border-white/10 bg-white/5">
             {flashcards.length === 0 ? (
               <p className="text-muted-foreground">
-                No flashcards available for this unit.
+                No flashcards available for Unit {unit}.
               </p>
             ) : (
               <div className="grid md:grid-cols-2 gap-6">
@@ -308,11 +332,7 @@ function Flashcard({
   return (
     <div
       onClick={() => setShow(!show)}
-      className="cursor-pointer rounded-xl p-6
-                 border border-white/10
-                 bg-background/60
-                 hover:bg-background/80
-                 transition"
+      className="cursor-pointer rounded-xl p-6 border border-white/10 bg-background/60 hover:bg-background/80 transition"
     >
       <p className="text-sm leading-relaxed">
         {show ? answer : question}
