@@ -8,6 +8,11 @@ from app.api.auth import router as auth_router
 from app.api.payments import router as payments_router
 from app.api.access import router as access_router
 from app.api import content
+from app.db.init_db import init_db
+
+@app.on_event("startup")
+def startup():
+    init_db()
 
 app = FastAPI(title="Elyaitra Backend", version="0.1.0")
 
