@@ -2,11 +2,9 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export function middleware(req: NextRequest) {
-  const userId = req.cookies.get("user_id");
-
-  if (!userId && req.nextUrl.pathname.startsWith("/tutor")) {
-    return NextResponse.redirect(new URL("/auth", req.url));
-  }
+  // ❌ Do NOT check auth here
+  // Auth is handled client-side using localStorage
+  return NextResponse.next();
 }
 
 export const config = {
