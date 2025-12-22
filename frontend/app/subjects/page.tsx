@@ -6,31 +6,33 @@ const SUBJECTS = [
     id: "ai",
     title: "AI",
     description: "Master machine learning, neural networks, and AI fundamentals.",
-    route: "/tutor/artificial-intelligence",
+    route: "/tutor/artificial-intelligence", // ✅ FIXED
     gradient: "from-orange-500 to-red-400",
   },
   {
     id: "programming",
     title: "Programming",
     description: "Solve algorithms and data structures with expert guidance.",
-    route: "/tutor/python",
+    route: "/tutor/python", // ✅ FIXED
     gradient: "from-purple-500 to-pink-400",
   },
   {
     id: "chemistry",
     title: "Chemistry",
     description: "Master organic, inorganic, and physical chemistry concepts.",
-    route: "/tutor/chemistry",
+    route: "/tutor/chemistry", // ✅ already correct
     gradient: "from-green-500 to-emerald-400",
   },
   {
     id: "mechanical",
     title: "Mechanical",
     description: "Master mechanics, thermodynamics, and engineering principles.",
-    route: "/tutor/mechanical",
+    route: "/tutor/mechanical", // ✅ already correct
     gradient: "from-blue-500 to-cyan-400",
   },
 ];
+
+
 
 export default function SubjectsPage() {
   return (
