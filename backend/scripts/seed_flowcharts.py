@@ -1,8 +1,8 @@
 import sqlite3
-import os
+from pathlib import Path
 
-# Adjust path if needed
-DB_PATH = os.path.join(os.path.dirname(__file__), "../app.db")
+# EXACT SAME DB PATH AS backend
+DB_PATH = Path(__file__).resolve().parents[1] / "app" / "db" / "elyaitra.db"
 
 conn = sqlite3.connect(DB_PATH)
 cur = conn.cursor()
@@ -14,12 +14,6 @@ flowcharts = [
         "title": "Solar Cells",
         "image": "/static/flowcharts/chemistry/chem-mod3.png",
     },
-    # {
-    #     "subject": "programming",
-    #     "unit": "loops",
-    #     "title": "While Loop Execution Flow",
-    #     "image": "/static/flowcharts/programming/loops/while-loop.png",
-    # },
 ]
 
 for fc in flowcharts:
@@ -34,4 +28,4 @@ for fc in flowcharts:
 conn.commit()
 conn.close()
 
-print("✅ Flowcharts seeded successfully")
+print("✅ Flowcharts seeded successfully into elyaitra.db")
