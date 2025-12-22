@@ -1,8 +1,10 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
-from app.db.database import get_db_connection
 import razorpay
 import os
+import hmac
+import hashlib
+from app.db.database import get_db_connection
 
 router = APIRouter(prefix="/payments", tags=["payments"])
 
@@ -14,29 +16,53 @@ client = razorpay.Client(
     )
 )
 
+# -----------------------------
+# Models
+# -----------------------------
 class PaymentRequest(BaseModel):
     user_id: int
-    amount: int = 50
+    amount: int
+    razorpay_payment_id: str
+    razorpay_order_id: str
+    razorpay_signature: str
 
 
 # -----------------------------
 # Create Razorpay Order
 # -----------------------------
 @router.post("/create-order")
-def create_order(amount: int = 50):
+def create_order():
+    amount_rupees = 69
+    amount_paise = amount_rupees * 100
+
     order = client.order.create({
-        "amount": amount * 100,  # paise
+        "amount": amount_paise,   # 6900
         "currency": "INR",
-        "payment_capture": 69
+        "payment_capture": 1
     })
+
     return order
 
 
 # -----------------------------
-# Record Payment (after success)
+# Verify & Record Payment
 # -----------------------------
 @router.post("/record")
 def record_payment(data: PaymentRequest):
+    # 🔐 Verify signature
+    message = f"{data.razorpay_order_id}|{data.razorpay_payment_id}"
+    secret = os.getenv("RAZORPAY_KEY_SECRET")
+
+    generated_signature = hmac.new(
+        secret.encode(),
+        message.encode(),
+        hashlib.sha256
+    ).hexdigest()
+
+    if generated_signature != data.razorpay_signature:
+        return {"status": "failed", "reason": "Invalid signature"}
+
+    # ✅ Save payment
     conn = get_db_connection()
     cursor = conn.cursor()
 
@@ -63,14 +89,11 @@ def payment_status(user_id: int):
     cursor = conn.cursor()
 
     cursor.execute(
-        """
-        SELECT status FROM payments
-        WHERE user_id = ? AND status = 'success'
-        """,
+        "SELECT 1 FROM payments WHERE user_id = ? AND status = 'success'",
         (user_id,)
     )
 
-    payment = cursor.fetchone()
+    paid = cursor.fetchone() is not None
     conn.close()
 
-    return {"paid": bool(payment)}
+    return {"paid": paid}
