@@ -304,14 +304,65 @@ export default function TutorPage() {
         {/* FLASHCARDS */}
         {activeTab === "flashcards" && (
           <div className="rounded-3xl p-8 border border-white/10 bg-white/5">
+            {flashcards.length === 0 && (
+              <p className="text-muted-foreground">
+                Flashcards will be added soon for this unit.
+              </p>
+            )}
+
             {flashcards.length > 0 && (
-              <div
-                onClick={() => setShowAnswer(!showAnswer)}
-                className="cursor-pointer text-center"
-              >
-                {showAnswer
-                  ? flashcards[activeCard].answer
-                  : flashcards[activeCard].question}
+              <div className="max-w-2xl mx-auto">
+                <div
+                  onClick={() => setShowAnswer(!showAnswer)}
+                  className="cursor-pointer rounded-2xl p-8 border border-white/10 bg-background/70 hover:bg-background/90 transition"
+                >
+                  <p className="text-lg leading-relaxed text-center">
+                    {showAnswer
+                      ? flashcards[activeCard].answer
+                      : flashcards[activeCard].question}
+                  </p>
+
+                  <p className="mt-6 text-xs text-muted-foreground text-center">
+                    {showAnswer ? "Tap to hide answer" : "Tap to reveal answer"}
+                  </p>
+                </div>
+
+                <div className="mt-6 flex items-center justify-between text-sm text-muted-foreground">
+                  <span>
+                    Card {activeCard + 1} of {flashcards.length}
+                  </span>
+
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowAnswer(false);
+                        setActiveCard(
+                          (prev) =>
+                            (prev - 1 + flashcards.length) % flashcards.length
+                        );
+                      }}
+                      className="px-3 py-1 rounded-md bg-muted hover:bg-muted/70"
+                    >
+                      ← Prev
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowAnswer(false);
+                        setActiveCard(
+                          (prev) => (prev + 1) % flashcards.length
+                        );
+                      }}
+                      className="px-3 py-1 rounded-md bg-muted hover:bg-muted/70"
+                    >
+                      Next →
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
           </div>
