@@ -3,12 +3,31 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
+/**
+ * ✅ SAFE Razorpay loader
+ * - Loads only once
+ * - Works with Next.js
+ */
 const loadRazorpay = () => {
   return new Promise<boolean>((resolve) => {
+    if (typeof window === "undefined") {
+      resolve(false);
+      return;
+    }
+
+    // Already loaded
+    if ((window as any).Razorpay) {
+      resolve(true);
+      return;
+    }
+
     const script = document.createElement("script");
     script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+
     script.onload = () => resolve(true);
     script.onerror = () => resolve(false);
+
     document.body.appendChild(script);
   });
 };
@@ -19,7 +38,18 @@ export default function PaymentPage() {
   const [checking, setChecking] = useState(true);
   const [error, setError] = useState("");
 
-  // ✅ CHECK PAYMENT STATUS ON PAGE LOAD
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  const RAZORPAY_KEY = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+
+  // ❌ Hard fail if envs missing
+  useEffect(() => {
+    if (!API_URL || !RAZORPAY_KEY) {
+      setError("Payment configuration error. Please contact support.");
+      setChecking(false);
+    }
+  }, [API_URL, RAZORPAY_KEY]);
+
+  // ✅ CHECK PAYMENT STATUS
   useEffect(() => {
     const checkPaymentStatus = async () => {
       const userId = localStorage.getItem("user_id");
@@ -30,24 +60,23 @@ export default function PaymentPage() {
 
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/payments/status?user_id=${userId}`
+          `${API_URL}/payments/status?user_id=${userId}`
         );
         const data = await res.json();
 
         if (data.paid) {
-          // 🔒 User already paid → block payment
           router.push("/subjects");
           return;
         }
-      } catch (err) {
+      } catch {
         console.error("Failed to check payment status");
       } finally {
         setChecking(false);
       }
     };
 
-    checkPaymentStatus();
-  }, [router]);
+    if (API_URL) checkPaymentStatus();
+  }, [router, API_URL]);
 
   const handlePayment = async () => {
     setLoading(true);
@@ -55,7 +84,7 @@ export default function PaymentPage() {
 
     const loaded = await loadRazorpay();
     if (!loaded) {
-      setError("Razorpay SDK failed to load");
+      setError("Razorpay SDK failed to load. Disable ad blockers or use HTTPS.");
       setLoading(false);
       return;
     }
@@ -67,14 +96,13 @@ export default function PaymentPage() {
     }
 
     try {
-      const orderRes = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/payments/create-order`,
-        { method: "POST" }
-      );
+      const orderRes = await fetch(`${API_URL}/payments/create-order`, {
+        method: "POST",
+      });
       const order = await orderRes.json();
 
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        key: RAZORPAY_KEY,
         amount: order.amount,
         currency: "INR",
         name: "Elyaitra",
@@ -82,29 +110,32 @@ export default function PaymentPage() {
         order_id: order.id,
 
         handler: async (response: any) => {
-          await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/payments/record`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                user_id: Number(userId),
-                amount: 69,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_signature: response.razorpay_signature,
-              }),
-            }
-          );
+          await fetch(`${API_URL}/payments/record`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              user_id: Number(userId),
+              amount: 69,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature,
+            }),
+          });
 
           router.push("/subjects");
+        },
+
+        modal: {
+          ondismiss: () => {
+            setError("Payment cancelled");
+          },
         },
 
         theme: { color: "#18181b" },
       };
 
-      const paymentObject = new (window as any).Razorpay(options);
-      paymentObject.open();
+      const razorpay = new (window as any).Razorpay(options);
+      razorpay.open();
     } catch {
       setError("Payment failed. Please try again.");
     } finally {
@@ -112,7 +143,6 @@ export default function PaymentPage() {
     }
   };
 
-  // ⏳ While checking DB, don't show Pay button
   if (checking) {
     return (
       <div className="min-h-screen flex items-center justify-center text-white">
@@ -131,7 +161,7 @@ export default function PaymentPage() {
             One-Time Payment
           </div>
 
-          <h1 className="text-3xl font-semibold tracking-tight text-zinc-900">
+          <h1 className="text-3xl font-semibold text-zinc-900">
             IA-2 Complete Access
           </h1>
 
@@ -143,13 +173,6 @@ export default function PaymentPage() {
             <span className="text-5xl font-extrabold text-zinc-900">₹69</span>
           </div>
 
-          <ul className="space-y-3 text-sm text-zinc-700">
-            <li className="flex gap-2"><span className="text-green-600">✓</span>All 4 core subjects</li>
-            <li className="flex gap-2"><span className="text-green-600">✓</span>Exam-focused answers</li>
-            <li className="flex gap-2"><span className="text-green-600">✓</span>No subscription</li>
-            <li className="flex gap-2"><span className="text-green-600">✓</span>Pay once, use during exams</li>
-          </ul>
-
           {error && (
             <p className="mt-4 text-sm text-red-500 text-center">{error}</p>
           )}
@@ -157,7 +180,7 @@ export default function PaymentPage() {
           <button
             onClick={handlePayment}
             disabled={loading}
-            className="mt-6 w-full rounded-xl bg-zinc-900 py-3.5 text-white font-semibold hover:bg-zinc-800 transition disabled:opacity-60"
+            className="mt-6 w-full rounded-xl bg-zinc-900 py-3.5 text-white font-semibold hover:bg-zinc-800 disabled:opacity-60"
           >
             {loading ? "Processing..." : "Pay & Start"}
           </button>
