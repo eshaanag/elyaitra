@@ -124,7 +124,10 @@ export default function TutorPage() {
         `${apiUrl}/content/flowcharts?subject=${subject}&unit=${unit}&user_id=${userId}`
       )
         .then((res) => res.json())
-        .then((data) => setFlowcharts(Array.isArray(data) ? data : []))
+        .then((data) => {
+          console.log("FRONTEND FLOWCHART DATA:", data);
+          setFlowcharts(Array.isArray(data) ? data : []);
+        })
         .catch(() => setFlowcharts([]));
     }
 
@@ -163,9 +166,7 @@ export default function TutorPage() {
       <main className="max-w-6xl mx-auto px-4 py-20">
         {/* SUBJECT HERO */}
         <div className="rounded-3xl p-10 mb-10 border border-white/10 bg-white/5">
-          <h1 className="text-4xl font-bold mb-4">
-            {subjectData.title} Tutor
-          </h1>
+          <h1 className="text-4xl font-bold mb-4">{subjectData.title} Tutor</h1>
           <p className="text-muted-foreground max-w-2xl">
             {subjectData.description}
           </p>
@@ -268,9 +269,7 @@ export default function TutorPage() {
                     key={i}
                     className="rounded-2xl p-6 border border-white/10 bg-background/60"
                   >
-                    <h3 className="text-lg font-semibold mb-4">
-                      {fc.title}
-                    </h3>
+                    <h3 className="text-lg font-semibold mb-4">{fc.title}</h3>
                     <img
                       src={`${process.env.NEXT_PUBLIC_API_URL}${fc.image}`}
                       alt={fc.title}
@@ -309,13 +308,7 @@ export default function TutorPage() {
 }
 
 /* FLASHCARD COMPONENT */
-function Flashcard({
-  question,
-  answer,
-}: {
-  question: string;
-  answer: string;
-}) {
+function Flashcard({ question, answer }: { question: string; answer: string }) {
   const [show, setShow] = useState(false);
 
   return (
