@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 const loadRazorpay = () => {
@@ -16,7 +16,38 @@ const loadRazorpay = () => {
 export default function PaymentPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(true);
   const [error, setError] = useState("");
+
+  // ✅ CHECK PAYMENT STATUS ON PAGE LOAD
+  useEffect(() => {
+    const checkPaymentStatus = async () => {
+      const userId = localStorage.getItem("user_id");
+      if (!userId) {
+        router.push("/auth");
+        return;
+      }
+
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/payments/status?user_id=${userId}`
+        );
+        const data = await res.json();
+
+        if (data.paid) {
+          // 🔒 User already paid → block payment
+          router.push("/subjects");
+          return;
+        }
+      } catch (err) {
+        console.error("Failed to check payment status");
+      } finally {
+        setChecking(false);
+      }
+    };
+
+    checkPaymentStatus();
+  }, [router]);
 
   const handlePayment = async () => {
     setLoading(true);
@@ -81,14 +112,21 @@ export default function PaymentPage() {
     }
   };
 
+  // ⏳ While checking DB, don't show Pay button
+  if (checking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-white">
+        Checking payment status...
+      </div>
+    );
+  }
+
   return (
     <>
-      {/* Background */}
       <div className="fixed inset-0 -z-10 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-800" />
 
       <div className="relative min-h-screen flex items-center justify-center px-4">
         <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl ring-1 ring-black/10">
-          
           <div className="mb-4 inline-block rounded-full bg-zinc-900/10 px-3 py-1 text-sm font-medium text-zinc-900">
             One-Time Payment
           </div>
@@ -106,22 +144,10 @@ export default function PaymentPage() {
           </div>
 
           <ul className="space-y-3 text-sm text-zinc-700">
-            <li className="flex gap-2">
-              <span className="text-green-600">✓</span>
-              All 4 core subjects
-            </li>
-            <li className="flex gap-2">
-              <span className="text-green-600">✓</span>
-              Exam-focused answers
-            </li>
-            <li className="flex gap-2">
-              <span className="text-green-600">✓</span>
-              No subscription
-            </li>
-            <li className="flex gap-2">
-              <span className="text-green-600">✓</span>
-              Pay once, use during exams
-            </li>
+            <li className="flex gap-2"><span className="text-green-600">✓</span>All 4 core subjects</li>
+            <li className="flex gap-2"><span className="text-green-600">✓</span>Exam-focused answers</li>
+            <li className="flex gap-2"><span className="text-green-600">✓</span>No subscription</li>
+            <li className="flex gap-2"><span className="text-green-600">✓</span>Pay once, use during exams</li>
           </ul>
 
           {error && (

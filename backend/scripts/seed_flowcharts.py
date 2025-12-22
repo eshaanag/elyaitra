@@ -14,6 +14,12 @@ flowcharts = [
         "title": "Solar Cells",
         "image": "/static/flowcharts/chemistry/chem-mod3.png",
     },
+    {
+        "subject": "chemistry",
+        "unit": "5",
+        "title": "Polymers",
+        "image": "/static/flowcharts/chemistry/chem-mod5.png",
+    },
 ]
 
 for fc in flowcharts:
