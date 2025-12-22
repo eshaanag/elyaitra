@@ -1,28 +1,27 @@
 import sqlite3
+from pathlib import Path
 
-conn = sqlite3.connect("app.db")
+DB_PATH = (
+    Path(__file__).resolve()
+    .parent.parent
+    / "app"
+    / "db"
+    / "elyaitra.db"
+)
+
+conn = sqlite3.connect(DB_PATH)
 cur = conn.cursor()
+
+# 🔥 DEBUG PRINT (IMPORTANT)
+print("Seeding DB at:", DB_PATH)
 
 flashcards = [
     {
-"subject":"chemistry",
-"unit":"3",
-"question":"What is ?",
-"answer": (
-"A for loop is a control structure used to execute a block of code "
-"a fixed number of times. It consists of initialization, condition "
-"checking, and updation of the loop variable."
-        ),
-    },
-    {
-"subject":"chemistry",
-"unit":"3",
-"question":"Difference between for loop and while loop.",
-"answer": (
-"For loop is used when the number of iterations is known in advance, "
-"whereas while loop is used when the number of iterations is not known."
-        ),
-    },
+        "subject": "chemistry",
+        "unit": "3",
+        "question": "What is a for loop?",
+        "answer": "A for loop is a control structure used to repeat code a fixed number of times."
+    }
 ]
 
 for fc in flashcards:
@@ -37,5 +36,4 @@ for fc in flashcards:
 conn.commit()
 conn.close()
 
-print("Flashcards seeded successfully")
-
+print("✅ Flashcards seeded")
