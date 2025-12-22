@@ -15,8 +15,8 @@ flashcards = [
         ),
     },
     {
-"subject":"programming",
-"unit":"loops",
+"subject":"chemistry",
+"unit":"3",
 "question":"Difference between for loop and while loop.",
 "answer": (
 "For loop is used when the number of iterations is known in advance, "

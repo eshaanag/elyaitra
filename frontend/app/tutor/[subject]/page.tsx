@@ -109,22 +109,33 @@ export default function TutorPage() {
     if (activeTab !== "flashcards") return;
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    const userId = localStorage.getItem("user_id");
+
+    if (!apiUrl || !userId) return;
 
     fetch(
-      `${apiUrl}/content/flashcards?subject=${subject}&unit=${unit}`
+      `${apiUrl}/content/flashcards?subject=${subject}&unit=${unit}&user_id=${userId}`
     )
-      .then((res) => res.json())
+      .then(async (res) => {
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.detail || "Access denied");
+        }
+        return res.json();
+      })
       .then((data) => {
         setFlashcards(Array.isArray(data) ? data : []);
         setActiveCard(0);
         setShowAnswer(false);
         setHasFetchedFlashcards(true);
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error("Flashcards error:", err.message);
         setFlashcards([]);
         setHasFetchedFlashcards(true);
       });
   }, [activeTab, subject, unit]);
+
 
   /* --------------------------------------------------
      CHAT (MOCK)
@@ -182,11 +193,10 @@ export default function TutorPage() {
             <button
               key={tab}
               onClick={() => setActiveTab(tab as any)}
-              className={`px-5 py-2 rounded-md text-sm font-medium ${
-                activeTab === tab
+              className={`px-5 py-2 rounded-md text-sm font-medium ${activeTab === tab
                   ? "bg-primary text-primary-foreground"
                   : "bg-muted"
-              }`}
+                }`}
             >
               {tab === "chat" && "Chat Tutor"}
               {tab === "flowcharts" && "Exam Flowcharts"}
@@ -208,16 +218,14 @@ export default function TutorPage() {
               {messages.map((msg, i) => (
                 <div
                   key={i}
-                  className={`mb-3 ${
-                    msg.role === "user" ? "text-right" : "text-left"
-                  }`}
+                  className={`mb-3 ${msg.role === "user" ? "text-right" : "text-left"
+                    }`}
                 >
                   <span
-                    className={`inline-block px-4 py-2 rounded-xl text-sm ${
-                      msg.role === "user"
+                    className={`inline-block px-4 py-2 rounded-xl text-sm ${msg.role === "user"
                         ? "bg-primary text-primary-foreground"
                         : "bg-muted"
-                    }`}
+                      }`}
                   >
                     {msg.content}
                   </span>
