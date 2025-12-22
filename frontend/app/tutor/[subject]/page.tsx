@@ -36,7 +36,7 @@ const SUBJECTS: Record<
 };
 
 /* --------------------------------------------------
-   SUBJECT → UNITS MAP (SYLLABUS STRUCTURE)
+   SUBJECT → UNITS MAP
 -------------------------------------------------- */
 const SUBJECT_UNITS: Record<string, string[]> = {
   chemistry: ["1", "2", "3", "4", "5"],
@@ -90,7 +90,7 @@ export default function TutorPage() {
     "chat" | "flowcharts" | "flashcards"
   >("chat");
 
-  const [unit, setUnit] = useState<string>("1");
+  const [unit, setUnit] = useState("1");
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -103,7 +103,7 @@ export default function TutorPage() {
   -------------------------------------------------- */
   useEffect(() => {
     const units = SUBJECT_UNITS[subject];
-    if (units && units.length > 0) {
+    if (units?.length) {
       setUnit(units[0]);
     }
   }, [subject]);
@@ -115,31 +115,34 @@ export default function TutorPage() {
   -------------------------------------------------- */
   useEffect(() => {
     const userId = localStorage.getItem("user_id");
-    if (!userId) return;
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (!userId || !apiUrl) return;
 
     if (activeTab === "flowcharts") {
+      setFlowcharts([]);
       fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/content/flowcharts?subject=${subject}&unit=${unit}&user_id=${userId}`
+        `${apiUrl}/content/flowcharts?subject=${subject}&unit=${unit}&user_id=${userId}`
       )
         .then((res) => res.json())
-        .then(setFlowcharts)
+        .then((data) => setFlowcharts(Array.isArray(data) ? data : []))
         .catch(() => setFlowcharts([]));
     }
 
     if (activeTab === "flashcards") {
+      setFlashcards([]);
       fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/content/flashcards?subject=${subject}&unit=${unit}&user_id=${userId}`
+        `${apiUrl}/content/flashcards?subject=${subject}&unit=${unit}&user_id=${userId}`
       )
         .then((res) => res.json())
-        .then(setFlashcards)
+        .then((data) => setFlashcards(Array.isArray(data) ? data : []))
         .catch(() => setFlashcards([]));
     }
   }, [activeTab, subject, unit]);
 
   /* --------------------------------------------------
-     MOCK CHAT RESPONSE (REPLACE LATER)
+     MOCK CHAT (AI LATER)
   -------------------------------------------------- */
-  async function getTutorResponse(question: string) {
+  async function getTutorResponse() {
     return `This explanation is strictly based on the ${subject.toUpperCase()} syllabus for Unit ${unit}.`;
   }
 
@@ -148,7 +151,7 @@ export default function TutorPage() {
 
     setMessages((prev) => [...prev, { role: "user", content: input }]);
 
-    getTutorResponse(input).then((answer) => {
+    getTutorResponse().then((answer) => {
       setMessages((prev) => [...prev, { role: "assistant", content: answer }]);
     });
 
@@ -156,23 +159,19 @@ export default function TutorPage() {
   }
 
   return (
-    <div className="relative min-h-screen bg-background overflow-hidden">
-      <main className="relative z-10 max-w-6xl mx-auto px-4 py-20">
-        {/* --------------------------------------------------
-           SUBJECT HERO
-        -------------------------------------------------- */}
-        <div className="rounded-3xl p-10 mb-10 border border-white/10 bg-white/5 backdrop-blur-xl">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+    <div className="min-h-screen bg-background">
+      <main className="max-w-6xl mx-auto px-4 py-20">
+        {/* SUBJECT HERO */}
+        <div className="rounded-3xl p-10 mb-10 border border-white/10 bg-white/5">
+          <h1 className="text-4xl font-bold mb-4">
             {subjectData.title} Tutor
           </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl">
+          <p className="text-muted-foreground max-w-2xl">
             {subjectData.description}
           </p>
         </div>
 
-        {/* --------------------------------------------------
-           UNIT SELECTOR
-        -------------------------------------------------- */}
+        {/* UNIT SELECTOR */}
         <div className="mb-8 flex items-center gap-3">
           <span className="text-sm text-muted-foreground">Unit:</span>
           <select
@@ -188,9 +187,7 @@ export default function TutorPage() {
           </select>
         </div>
 
-        {/* --------------------------------------------------
-           CONTENT TABS
-        -------------------------------------------------- */}
+        {/* TABS */}
         <div className="flex gap-4 mb-10">
           {[
             { id: "chat", label: "Chat Tutor" },
@@ -200,21 +197,18 @@ export default function TutorPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`px-5 py-2 rounded-md text-sm font-medium transition
-                ${
-                  activeTab === tab.id
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted hover:bg-muted/70"
-                }`}
+              className={`px-5 py-2 rounded-md text-sm font-medium ${
+                activeTab === tab.id
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted"
+              }`}
             >
               {tab.label}
             </button>
           ))}
         </div>
 
-        {/* --------------------------------------------------
-           CHAT
-        -------------------------------------------------- */}
+        {/* CHAT */}
         {activeTab === "chat" && (
           <div className="rounded-3xl p-8 border border-white/10 bg-white/5">
             <div className="min-h-[260px] rounded-xl border border-white/10 bg-background/60 p-4 mb-4">
@@ -223,7 +217,6 @@ export default function TutorPage() {
                   Ask a question from Unit {unit}.
                 </p>
               )}
-
               {messages.map((msg, i) => (
                 <div
                   key={i}
@@ -232,12 +225,11 @@ export default function TutorPage() {
                   }`}
                 >
                   <span
-                    className={`inline-block px-4 py-2 rounded-xl text-sm
-                      ${
-                        msg.role === "user"
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-muted"
-                      }`}
+                    className={`inline-block px-4 py-2 rounded-xl text-sm ${
+                      msg.role === "user"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted"
+                    }`}
                   >
                     {msg.content}
                   </span>
@@ -250,7 +242,7 @@ export default function TutorPage() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask a syllabus question..."
-                className="flex-1 rounded-md border border-white/10 bg-background/80 px-4 py-2"
+                className="flex-1 rounded-md border border-white/10 bg-background px-4 py-2"
               />
               <button
                 onClick={handleSend}
@@ -262,26 +254,27 @@ export default function TutorPage() {
           </div>
         )}
 
-        {/* --------------------------------------------------
-           FLOWCHARTS
-        -------------------------------------------------- */}
+        {/* FLOWCHARTS */}
         {activeTab === "flowcharts" && (
           <div className="rounded-3xl p-8 border border-white/10 bg-white/5">
             {flowcharts.length === 0 ? (
               <p className="text-muted-foreground">
-                No flowcharts available for Unit {unit}.
+                Flowcharts for Unit {unit} will be added soon.
               </p>
             ) : (
-              <div className="space-y-10">
+              <div className="space-y-8">
                 {flowcharts.map((fc, i) => (
-                  <div key={i}>
-                    <h3 className="text-lg font-semibold mb-3">
+                  <div
+                    key={i}
+                    className="rounded-2xl p-6 border border-white/10 bg-background/60"
+                  >
+                    <h3 className="text-lg font-semibold mb-4">
                       {fc.title}
                     </h3>
                     <img
                       src={`${process.env.NEXT_PUBLIC_API_URL}${fc.image}`}
                       alt={fc.title}
-                      className="rounded-xl border bg-white"
+                      className="rounded-xl border border-white/10 bg-transparent max-w-full md:max-w-3xl mx-auto"
                     />
                   </div>
                 ))}
@@ -290,14 +283,12 @@ export default function TutorPage() {
           </div>
         )}
 
-        {/* --------------------------------------------------
-           FLASHCARDS
-        -------------------------------------------------- */}
+        {/* FLASHCARDS */}
         {activeTab === "flashcards" && (
           <div className="rounded-3xl p-8 border border-white/10 bg-white/5">
             {flashcards.length === 0 ? (
               <p className="text-muted-foreground">
-                No flashcards available for Unit {unit}.
+                Flashcards for Unit {unit} will be added soon.
               </p>
             ) : (
               <div className="grid md:grid-cols-2 gap-6">
@@ -317,9 +308,7 @@ export default function TutorPage() {
   );
 }
 
-/* --------------------------------------------------
-   FLASHCARD COMPONENT
--------------------------------------------------- */
+/* FLASHCARD COMPONENT */
 function Flashcard({
   question,
   answer,
@@ -332,11 +321,9 @@ function Flashcard({
   return (
     <div
       onClick={() => setShow(!show)}
-      className="cursor-pointer rounded-xl p-6 border border-white/10 bg-background/60 hover:bg-background/80 transition"
+      className="cursor-pointer rounded-xl p-6 border border-white/10 bg-background hover:bg-background/80 transition"
     >
-      <p className="text-sm leading-relaxed">
-        {show ? answer : question}
-      </p>
+      <p className="text-sm">{show ? answer : question}</p>
       <p className="mt-3 text-xs text-muted-foreground">
         {show ? "Tap to hide answer" : "Tap to reveal answer"}
       </p>
