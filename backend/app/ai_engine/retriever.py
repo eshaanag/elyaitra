@@ -1,7 +1,6 @@
 import os
 from dotenv import load_dotenv
-from google import genai
-
+import google.generativeai as genai
 
 from app.ai_engine.chroma_client import get_collection
 
@@ -14,17 +13,22 @@ API_KEY = os.getenv("GEMINI_API_KEY")
 if not API_KEY:
     raise RuntimeError("GEMINI_API_KEY not set")
 
-genai_client = genai.Client(api_key=API_KEY)
+# Configure Gemini (NO Client object)
+genai.configure(api_key=API_KEY)
 
 # --------------------------------------------------
 # GEMINI EMBEDDING
 # --------------------------------------------------
-def embed(text: str):
-    res = genai_client.models.embed_content(
-        model="text-embedding-004",
-        contents=text
+def embed(text: str) -> list[float]:
+    """
+    Generate an embedding vector for the given text
+    using Gemini embedding model.
+    """
+    result = genai.embed_content(
+        model="models/text-embedding-004",
+        content=text
     )
-    return res.embeddings[0].values
+    return result["embedding"]
 
 # --------------------------------------------------
 # RETRIEVE
