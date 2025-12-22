@@ -94,7 +94,7 @@ export default function PaymentPage() {
 
   return (
     <>
-      {/* ✅ Razorpay SDK MUST be here — ALWAYS rendered */}
+      {/* Razorpay SDK */}
       <Script
         src="https://checkout.razorpay.com/v1/checkout.js"
         strategy="afterInteractive"
@@ -104,23 +104,74 @@ export default function PaymentPage() {
         }
       />
 
+      {/* Background */}
+      <div className="fixed inset-0 -z-10 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-800" />
+
       {checking ? (
         <div className="min-h-screen flex items-center justify-center text-white">
           Checking payment status...
         </div>
       ) : (
-        <div className="min-h-screen flex items-center justify-center">
-          <button
-            onClick={handlePayment}
-            disabled={loading || !razorpayReady}
-            className="px-6 py-3 bg-black text-white rounded-lg"
-          >
-            {loading ? "Processing..." : "Pay ₹69"}
-          </button>
+        <div className="relative min-h-screen flex items-center justify-center px-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl ring-1 ring-black/10">
+            <div className="mb-4 inline-block rounded-full bg-zinc-900/10 px-3 py-1 text-sm font-medium text-zinc-900">
+              One-Time Payment
+            </div>
 
-          {error && (
-            <p className="mt-4 text-sm text-red-500 text-center">{error}</p>
-          )}
+            <h1 className="text-3xl font-semibold tracking-tight text-zinc-900">
+              IA-2 Complete Access
+            </h1>
+
+            <p className="mt-2 text-sm text-zinc-600">
+              Full access to exam-focused answers and preparation material.
+            </p>
+
+            <div className="my-6 text-center">
+              <span className="text-5xl font-extrabold text-zinc-900">
+                ₹69
+              </span>
+              <p className="mt-1 text-sm text-zinc-500">
+                Pay once • No subscription
+              </p>
+            </div>
+
+            <ul className="space-y-3 text-sm text-zinc-700">
+              <li className="flex gap-2">
+                <span className="text-green-600">✓</span> All 4 core subjects
+              </li>
+              <li className="flex gap-2">
+                <span className="text-green-600">✓</span> Exam-oriented answers
+              </li>
+              <li className="flex gap-2">
+                <span className="text-green-600">✓</span> AI-assisted explanations
+              </li>
+              <li className="flex gap-2">
+                <span className="text-green-600">✓</span> Valid during IA exams
+              </li>
+            </ul>
+
+            {error && (
+              <p className="mt-4 text-sm text-red-500 text-center">
+                {error}
+              </p>
+            )}
+
+            <button
+              onClick={handlePayment}
+              disabled={loading || !razorpayReady}
+              className="mt-6 w-full rounded-xl bg-zinc-900 py-3.5 text-white font-semibold hover:bg-zinc-800 transition disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {loading
+                ? "Processing..."
+                : razorpayReady
+                ? "Pay & Start"
+                : "Loading payment..."}
+            </button>
+
+            <p className="mt-4 text-xs text-center text-zinc-500">
+              Secure payments powered by Razorpay
+            </p>
+          </div>
         </div>
       )}
     </>
