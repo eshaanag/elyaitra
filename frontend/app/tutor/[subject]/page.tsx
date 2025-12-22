@@ -21,6 +21,9 @@ const SUBJECT_UNITS: Record<string, string[]> = {
   chemistry: ["1", "2", "3", "4", "5"],
 };
 
+/* --------------------------------------------------
+   TYPES
+-------------------------------------------------- */
 type Message = {
   role: "user" | "assistant";
   content: string;
@@ -29,6 +32,11 @@ type Message = {
 type Flowchart = {
   title: string;
   image: string;
+};
+
+type Flashcard = {
+  question: string;
+  answer: string;
 };
 
 export default function TutorPage() {
@@ -50,7 +58,9 @@ export default function TutorPage() {
   /* --------------------------------------------------
      STATE
   -------------------------------------------------- */
-  const [activeTab, setActiveTab] = useState<"chat" | "flowcharts">("chat");
+  const [activeTab, setActiveTab] =
+    useState<"chat" | "flowcharts" | "flashcards">("chat");
+
   const [unit, setUnit] = useState("3");
 
   // chat
@@ -60,6 +70,12 @@ export default function TutorPage() {
   // flowcharts
   const [flowcharts, setFlowcharts] = useState<Flowchart[]>([]);
   const [hasFetchedFlowcharts, setHasFetchedFlowcharts] = useState(false);
+
+  // flashcards
+  const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
+  const [activeCard, setActiveCard] = useState(0);
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [hasFetchedFlashcards, setHasFetchedFlashcards] = useState(false);
 
   /* --------------------------------------------------
      FETCH FLOWCHARTS
@@ -77,16 +93,36 @@ export default function TutorPage() {
     )
       .then((res) => res.json())
       .then((data) => {
-        if (Array.isArray(data)) {
-          setFlowcharts(data);
-        } else {
-          setFlowcharts([]);
-        }
+        setFlowcharts(Array.isArray(data) ? data : []);
         setHasFetchedFlowcharts(true);
       })
       .catch(() => {
         setFlowcharts([]);
         setHasFetchedFlowcharts(true);
+      });
+  }, [activeTab, subject, unit]);
+
+  /* --------------------------------------------------
+     FETCH FLASHCARDS
+  -------------------------------------------------- */
+  useEffect(() => {
+    if (activeTab !== "flashcards") return;
+
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
+    fetch(
+      `${apiUrl}/content/flashcards?subject=${subject}&unit=${unit}`
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        setFlashcards(Array.isArray(data) ? data : []);
+        setActiveCard(0);
+        setShowAnswer(false);
+        setHasFetchedFlashcards(true);
+      })
+      .catch(() => {
+        setFlashcards([]);
+        setHasFetchedFlashcards(true);
       });
   }, [activeTab, subject, unit]);
 
@@ -113,6 +149,7 @@ export default function TutorPage() {
   return (
     <div className="min-h-screen bg-background">
       <main className="max-w-6xl mx-auto px-4 py-20">
+
         {/* HERO */}
         <div className="rounded-3xl p-10 mb-10 border border-white/10 bg-white/5">
           <h1 className="text-4xl font-bold mb-4">
@@ -141,26 +178,21 @@ export default function TutorPage() {
 
         {/* TABS */}
         <div className="flex gap-4 mb-10">
-          <button
-            onClick={() => setActiveTab("chat")}
-            className={`px-5 py-2 rounded-md text-sm font-medium ${
-              activeTab === "chat"
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted"
-            }`}
-          >
-            Chat Tutor
-          </button>
-          <button
-            onClick={() => setActiveTab("flowcharts")}
-            className={`px-5 py-2 rounded-md text-sm font-medium ${
-              activeTab === "flowcharts"
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted"
-            }`}
-          >
-            Exam Flowcharts
-          </button>
+          {["chat", "flowcharts", "flashcards"].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab as any)}
+              className={`px-5 py-2 rounded-md text-sm font-medium ${
+                activeTab === tab
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted"
+              }`}
+            >
+              {tab === "chat" && "Chat Tutor"}
+              {tab === "flowcharts" && "Exam Flowcharts"}
+              {tab === "flashcards" && "Flashcards"}
+            </button>
+          ))}
         </div>
 
         {/* CHAT */}
@@ -227,7 +259,7 @@ export default function TutorPage() {
               <div className="space-y-8">
                 {flowcharts.map((fc, i) => (
                   <div
-                    key={`${fc.title}-${i}`}
+                    key={i}
                     className="rounded-2xl p-6 border border-white/10 bg-background/60"
                   >
                     <h3 className="text-lg font-semibold mb-4">
@@ -237,10 +269,74 @@ export default function TutorPage() {
                       src={`${process.env.NEXT_PUBLIC_API_URL}${fc.image}`}
                       alt={fc.title}
                       className="w-full max-w-3xl mx-auto rounded-xl border"
-                      loading="eager"
                     />
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* FLASHCARDS */}
+        {activeTab === "flashcards" && (
+          <div className="rounded-3xl p-8 border border-white/10 bg-white/5">
+            {!hasFetchedFlashcards && (
+              <p className="text-muted-foreground">Loading flashcards…</p>
+            )}
+
+            {hasFetchedFlashcards && flashcards.length === 0 && (
+              <p className="text-muted-foreground">
+                No flashcards available for Unit {unit}.
+              </p>
+            )}
+
+            {flashcards.length > 0 && (
+              <div className="max-w-3xl mx-auto text-center">
+                <p className="text-sm text-muted-foreground mb-4">
+                  Card {activeCard + 1} of {flashcards.length}
+                </p>
+
+                <div
+                  onClick={() => setShowAnswer(!showAnswer)}
+                  className="cursor-pointer rounded-2xl p-10 border border-white/10 bg-background/70 min-h-[220px] flex items-center justify-center"
+                >
+                  <p className="text-lg font-medium">
+                    {showAnswer
+                      ? flashcards[activeCard].answer
+                      : flashcards[activeCard].question}
+                  </p>
+                </div>
+
+                <div className="flex justify-between mt-6">
+                  <button
+                    disabled={activeCard === 0}
+                    onClick={() => {
+                      setActiveCard(activeCard - 1);
+                      setShowAnswer(false);
+                    }}
+                    className="px-4 py-2 rounded-md bg-muted disabled:opacity-40"
+                  >
+                    Previous
+                  </button>
+
+                  <button
+                    onClick={() => setShowAnswer(!showAnswer)}
+                    className="px-6 py-2 rounded-md bg-primary text-primary-foreground"
+                  >
+                    {showAnswer ? "Show Question" : "Show Answer"}
+                  </button>
+
+                  <button
+                    disabled={activeCard === flashcards.length - 1}
+                    onClick={() => {
+                      setActiveCard(activeCard + 1);
+                      setShowAnswer(false);
+                    }}
+                    className="px-4 py-2 rounded-md bg-muted disabled:opacity-40"
+                  >
+                    Next
+                  </button>
+                </div>
               </div>
             )}
           </div>
