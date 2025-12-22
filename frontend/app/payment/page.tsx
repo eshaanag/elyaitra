@@ -58,7 +58,7 @@ export default function PaymentPage() {
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 user_id: Number(userId),
-                amount: 50,
+                amount: 69,
               }),
             }
           );
