@@ -6,14 +6,14 @@ const SUBJECTS = [
     id: "ai",
     title: "AI",
     description: "Master machine learning, neural networks, and AI fundamentals.",
-    route: "/tutor/ai",
+    route: "/tutor/artificial-intelligence",
     gradient: "from-orange-500 to-red-400",
   },
   {
     id: "programming",
     title: "Programming",
     description: "Solve algorithms and data structures with expert guidance.",
-    route: "/tutor/programming",
+    route: "/tutor/python",
     gradient: "from-purple-500 to-pink-400",
   },
   {
