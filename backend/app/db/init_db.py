@@ -5,7 +5,7 @@ def init_db():
     cursor = conn.cursor()
 
     # --------------------
-    # Users
+    # Tables
     # --------------------
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS users (
@@ -15,9 +15,6 @@ def init_db():
     )
     """)
 
-    # --------------------
-    # Payments
-    # --------------------
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS payments (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -28,9 +25,6 @@ def init_db():
     )
     """)
 
-    # --------------------
-    # Flashcards ✅ (THIS WAS MISSING)
-    # --------------------
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS flashcards (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -41,9 +35,6 @@ def init_db():
     )
     """)
 
-    # --------------------
-    # Flowcharts (for consistency)
-    # --------------------
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS flowcharts (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -54,8 +45,27 @@ def init_db():
     )
     """)
 
+    # --------------------
+    # 🔥 SEED FLASHCARDS (THIS WAS MISSING)
+    # --------------------
+    cursor.execute(
+        "SELECT COUNT(*) FROM flashcards WHERE subject = 'chemistry' AND unit = '3'"
+    )
+    exists = cursor.fetchone()[0]
+
+    if exists == 0:
+        cursor.execute(
+            """
+            INSERT INTO flashcards (subject, unit, question, answer)
+            VALUES (?, ?, ?, ?)
+            """,
+            (
+                "chemistry",
+                "3",
+                "What is a for loop?",
+                "A for loop is a control structure used to repeat a block of code a fixed number of times."
+            )
+        )
+
     conn.commit()
     conn.close()
-
-if __name__ == "__main__":
-    init_db()
