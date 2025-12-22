@@ -6,14 +6,11 @@ import { useParams, useRouter } from "next/navigation";
 /* --------------------------------------------------
    SUBJECT CONFIG
 -------------------------------------------------- */
-const SUBJECTS: Record<
-  string,
-  { title: string; description: string }
-> = {
+const SUBJECTS: Record<string, { title: string; description: string }> = {
   chemistry: {
     title: "Chemistry",
     description:
-      "Exam-focused chemistry tutor with important diagrams and revision.",
+      "Exam-focused chemistry tutor with important diagrams and quick revision.",
   },
 };
 
@@ -45,16 +42,15 @@ export default function TutorPage() {
      GUARD
   -------------------------------------------------- */
   useEffect(() => {
-    if (!subjectData) router.replace("/subjects");
+    if (!subjectData) {
+      router.replace("/subjects");
+    }
   }, [subjectData, router]);
 
   /* --------------------------------------------------
      STATE
   -------------------------------------------------- */
-  const [activeTab, setActiveTab] = useState<
-    "chat" | "flowcharts"
-  >("chat");
-
+  const [activeTab, setActiveTab] = useState<"chat" | "flowcharts">("chat");
   const [unit, setUnit] = useState("3");
 
   // chat
@@ -63,11 +59,10 @@ export default function TutorPage() {
 
   // flowcharts
   const [flowcharts, setFlowcharts] = useState<Flowchart[]>([]);
-  const [loadingFlowcharts, setLoadingFlowcharts] =
-    useState(false);
+  const [hasFetchedFlowcharts, setHasFetchedFlowcharts] = useState(false);
 
   /* --------------------------------------------------
-     FETCH FLOWCHARTS (CORRECT)
+     FETCH FLOWCHARTS
   -------------------------------------------------- */
   useEffect(() => {
     if (activeTab !== "flowcharts") return;
@@ -76,8 +71,6 @@ export default function TutorPage() {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
     if (!userId || !apiUrl) return;
-
-    setLoadingFlowcharts(true);
 
     fetch(
       `${apiUrl}/content/flowcharts?subject=${subject}&unit=${unit}&user_id=${userId}`
@@ -89,9 +82,12 @@ export default function TutorPage() {
         } else {
           setFlowcharts([]);
         }
+        setHasFetchedFlowcharts(true);
       })
-      .catch(() => setFlowcharts([]))
-      .finally(() => setLoadingFlowcharts(false));
+      .catch(() => {
+        setFlowcharts([]);
+        setHasFetchedFlowcharts(true);
+      });
   }, [activeTab, subject, unit]);
 
   /* --------------------------------------------------
@@ -105,8 +101,7 @@ export default function TutorPage() {
       { role: "user", content: input },
       {
         role: "assistant",
-        content:
-          "This answer is strictly based on the syllabus.",
+        content: "This answer is strictly based on the syllabus.",
       },
     ]);
 
@@ -130,9 +125,7 @@ export default function TutorPage() {
 
         {/* UNIT SELECTOR */}
         <div className="mb-8 flex items-center gap-3">
-          <span className="text-sm text-muted-foreground">
-            Unit:
-          </span>
+          <span className="text-sm text-muted-foreground">Unit:</span>
           <select
             value={unit}
             onChange={(e) => setUnit(e.target.value)}
@@ -184,9 +177,7 @@ export default function TutorPage() {
                 <div
                   key={i}
                   className={`mb-3 ${
-                    msg.role === "user"
-                      ? "text-right"
-                      : "text-left"
+                    msg.role === "user" ? "text-right" : "text-left"
                   }`}
                 >
                   <span
@@ -222,41 +213,36 @@ export default function TutorPage() {
         {/* FLOWCHARTS */}
         {activeTab === "flowcharts" && (
           <div className="rounded-3xl p-8 border border-white/10 bg-white/5">
-            {loadingFlowcharts && (
+            {!hasFetchedFlowcharts && (
+              <p className="text-muted-foreground">Loading flowcharts…</p>
+            )}
+
+            {hasFetchedFlowcharts && flowcharts.length === 0 && (
               <p className="text-muted-foreground">
-                Loading flowcharts…
+                No flowcharts available for Unit {unit}.
               </p>
             )}
 
-            {!loadingFlowcharts &&
-              flowcharts.length === 0 && (
-                <p className="text-muted-foreground">
-                  Flowcharts for Unit {unit} will be added
-                  soon.
-                </p>
-              )}
-
-            {!loadingFlowcharts &&
-              flowcharts.length > 0 && (
-                <div className="space-y-10">
-                  {flowcharts.map((fc, i) => (
-                    <div
-                      key={i}
-                      className="rounded-2xl p-6 border border-white/10 bg-background/60"
-                    >
-                      <h3 className="text-lg font-semibold mb-4">
-                        {fc.title}
-                      </h3>
-                      <img
-                        src={`${process.env.NEXT_PUBLIC_API_URL}${fc.image}`}
-                        alt={fc.title}
-                        className="w-full max-w-3xl mx-auto rounded-xl border"
-                        loading="eager"
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
+            {flowcharts.length > 0 && (
+              <div className="space-y-8">
+                {flowcharts.map((fc, i) => (
+                  <div
+                    key={`${fc.title}-${i}`}
+                    className="rounded-2xl p-6 border border-white/10 bg-background/60"
+                  >
+                    <h3 className="text-lg font-semibold mb-4">
+                      {fc.title}
+                    </h3>
+                    <img
+                      src={`${process.env.NEXT_PUBLIC_API_URL}${fc.image}`}
+                      alt={fc.title}
+                      className="w-full max-w-3xl mx-auto rounded-xl border"
+                      loading="eager"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </main>
