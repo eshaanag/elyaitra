@@ -1,88 +1,90 @@
 import os
-import chromadb
-import ollama
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+from dotenv import load_dotenv
+import google.generativeai as genai
+
+from backend.app.ai_engine.chroma_client import get_collection
 
 # --------------------------------------------------
-# PATH SETUP
+# ENV
 # --------------------------------------------------
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-CHROMA_PATH = os.path.join(BASE_DIR, "storage")
-DATA_PATH = os.path.join(BASE_DIR, "data")
+load_dotenv()
 
-print("📁 Chroma path:", CHROMA_PATH)
-print("📁 Data path:", DATA_PATH)
+API_KEY = os.getenv("GEMINI_API_KEY")
+if not API_KEY:
+    raise RuntimeError("GEMINI_API_KEY not set")
 
-os.makedirs(CHROMA_PATH, exist_ok=True)
-
-if not os.path.exists(DATA_PATH):
-    raise Exception("❌ data folder not found")
+# Configure Gemini
+genai.configure(api_key=API_KEY)
 
 # --------------------------------------------------
-# INIT CHROMADB (PERSISTENT CLIENT — IMPORTANT)
+# PATHS
 # --------------------------------------------------
-client = chromadb.PersistentClient(
-    path=CHROMA_PATH
+PROJECT_ROOT = os.path.dirname(
+    os.path.dirname(
+        os.path.dirname(os.path.abspath(__file__))
+    )
 )
 
-# --------------------------------------------------
-# CREATE / LOAD COLLECTION
-# --------------------------------------------------
-collection = client.get_or_create_collection(name="chemistry")
+SYLLABUS_PATH = os.path.join(PROJECT_ROOT, "syllabus_data")
+
+print("📁 Using syllabus path:", SYLLABUS_PATH)
 
 # --------------------------------------------------
-# TEXT SPLITTER
-# --------------------------------------------------
-splitter = RecursiveCharacterTextSplitter(
-    chunk_size=300,
-    chunk_overlap=50
-)
-
-# --------------------------------------------------
-# EMBEDDING FUNCTION
+# GEMINI EMBEDDING FUNCTION
 # --------------------------------------------------
 def embed(text: str):
-    return ollama.embeddings(
-        model="nomic-embed-text",
-        prompt=text
-    )["embedding"]
+    """
+    Returns embedding vector using Gemini
+    """
+    response = genai.embed_content(
+        model="models/text-embedding-004",
+        content=text
+    )
+    return response["embedding"]
 
 # --------------------------------------------------
-# INDEX DATA
+# INGESTION LOGIC
 # --------------------------------------------------
-doc_id = 0
+def ingest():
+    for subject in os.listdir(SYLLABUS_PATH):
+        subject_path = os.path.join(SYLLABUS_PATH, subject)
 
-for file_name in os.listdir(DATA_PATH):
-    print("📄 Reading:", file_name)
+        if not os.path.isdir(subject_path):
+            continue
 
-    if not file_name.endswith(".txt"):
-        continue
+        print(f"[+] Ingesting subject: {subject}")
+        collection = get_collection(subject)
 
-    unit_name = file_name.replace(".txt", "")
-    file_path = os.path.join(DATA_PATH, file_name)
+        doc_id = 0
 
-    with open(file_path, "r", encoding="utf-8") as f:
-        text = f.read().strip()
+        for file in os.listdir(subject_path):
+            if not file.endswith(".txt"):
+                continue
 
-    if not text:
-        print(f"⚠️ Skipping empty file: {file_name}")
-        continue
+            file_path = os.path.join(subject_path, file)
 
-    chunks = splitter.split_text(text)
+            with open(file_path, "r", encoding="utf-8") as f:
+                text = f.read().strip()
 
-    for chunk in chunks:
-        print("➕ Adding chunk from:", unit_name)
+            if not text:
+                continue
 
-        collection.add(
-            documents=[chunk],
-            embeddings=[embed(chunk)],
-            metadatas=[{
-                "subject": "chemistry",
-                "unit": unit_name,
-                "source": "syllabus"
-            }],
-            ids=[f"chem_{doc_id}"]
-        )
-        doc_id += 1
+            collection.add(
+                documents=[text],
+                embeddings=[embed(text)],
+                metadatas=[{
+                    "subject": subject,
+                    "source": file
+                }],
+                ids=[f"{subject}_{doc_id}"]
+            )
 
-print("✅ Chemistry syllabus indexed successfully")
+            doc_id += 1
+
+        print(f"[✓] Done {subject}")
+
+    print("✅ Ingestion complete (ChromaDB is persistent)")
+
+# --------------------------------------------------
+if __name__ == "__main__":
+    ingest()
