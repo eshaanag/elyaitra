@@ -8,11 +8,7 @@ from app.api.auth import router as auth_router
 from app.api.payments import router as payments_router
 from app.api.access import router as access_router
 from app.api import content
-from app.db.init_db import init_db
-
-@app.on_event("startup")
-def startup():
-    init_db()
+from app.db.init_db import init_db  # ✅ import here
 
 app = FastAPI(title="Elyaitra Backend", version="0.1.0")
 
@@ -36,6 +32,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ✅ Startup hook (THIS is where it belongs)
+@app.on_event("startup")
+def startup_event():
+    init_db()
+
+# Routers
 app.include_router(content.router)
 app.include_router(health_router)
 app.include_router(auth_router)
