@@ -24,7 +24,7 @@ export default function AuthPage() {
 
       // 1️⃣ LOGIN
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/login`,
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -41,7 +41,7 @@ export default function AuthPage() {
 
       // 2️⃣ CHECK ACCESS
       const accessRes = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/access/subjects?user_id=${data.user_id}`
+        `${process.env.NEXT_PUBLIC_API_URL}/access/subjects?user_id=${data.user_id}`
       );
 
       if (!accessRes.ok) {

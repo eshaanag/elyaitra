@@ -30,7 +30,7 @@ export default function PaymentPage() {
 
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/payments/status?user_id=${userId}`
+          `${process.env.NEXT_PUBLIC_API_URL}/payments/status?user_id=${userId}`
         );
         const data = await res.json();
 
@@ -68,7 +68,7 @@ export default function PaymentPage() {
 
     try {
       const orderRes = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/payments/create-order`,
+        `${process.env.NEXT_PUBLIC_API_URL}/payments/create-order`,
         { method: "POST" }
       );
       const order = await orderRes.json();
@@ -83,7 +83,7 @@ export default function PaymentPage() {
 
         handler: async (response: any) => {
           await fetch(
-            `${process.env.NEXT_PUBLIC_API_BASE_URL}/payments/record`,
+            `${process.env.NEXT_PUBLIC_API_URL}/payments/record`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
