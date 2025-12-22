@@ -1,7 +1,7 @@
 import sqlite3
 from pathlib import Path
 
-# EXACT SAME DB PATH AS backend
+# ✅ USE SAME DB AS BACKEND
 DB_PATH = Path(__file__).resolve().parents[1] / "app" / "db" / "elyaitra.db"
 
 conn = sqlite3.connect(DB_PATH)
@@ -15,11 +15,12 @@ flowcharts = [
         "image": "/static/flowcharts/chemistry/chem-mod3.png",
     },
     {
+
         "subject": "chemistry",
         "unit": "5",
         "title": "Polymers",
         "image": "/static/flowcharts/chemistry/chem-mod5.png",
-    },
+    }
 ]
 
 for fc in flowcharts:
@@ -34,4 +35,4 @@ for fc in flowcharts:
 conn.commit()
 conn.close()
 
-print("✅ Flowcharts seeded successfully into elyaitra.db")
+print("✅ Flowcharts seeded successfully")
