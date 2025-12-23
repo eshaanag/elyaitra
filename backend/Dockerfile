@@ -1,25 +1,16 @@
-FROM python:3.11-slim
+FROM python:3.10-slim
 
 RUN apt-get update && apt-get install -y \
-    build-essential \
-    g++ \
-    gcc \
-    cmake \
-    git \
+    build-essential gcc g++ cmake git \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# 🔴 THIS LINE MUST BE EXACT
-COPY backend/requirements.txt ./requirements.txt
+COPY requirements.txt .
 
 RUN pip install --upgrade pip
-RUN pip uninstall -y pydantic pydantic-core pydantic-settings || true
-RUN pip install --no-cache-dir pydantic==1.10.13
 RUN pip install --no-cache-dir -r requirements.txt
 
-
-# 🔴 COPY BACKEND CODE
-COPY backend ./app
+COPY . .
 
 CMD ["gunicorn", "app.main:app", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8080"]
