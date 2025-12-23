@@ -23,7 +23,7 @@ dirtyjson==1.0.8
 distro==1.9.0
 duckdb==1.4.3
 ecdsa==0.19.1
-fastapi==0.125.0
+fastapi==0.95.2
 filelock==3.20.1
 filetype==1.2.0
 frozenlist==1.8.0
@@ -73,7 +73,7 @@ platformdirs==4.5.1
 posthog==7.4.0
 propcache==0.4.1
 pyasn1==0.6.1
-pydantic==2.12.5
+pydantic==1.10.13
 pydantic_core==2.41.5
 pypdf==6.4.2
 python-dateutil==2.9.0.post0
