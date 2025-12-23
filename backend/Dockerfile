@@ -10,7 +10,8 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-COPY requirements.txt .
+# 🔴 EXPLICIT PATH — THIS IS THE FIX
+COPY backend/requirements.txt ./requirements.txt
 
 RUN pip install --upgrade pip
 RUN pip uninstall -y pydantic pydantic-core pydantic-settings || true
@@ -18,6 +19,7 @@ RUN pip install --no-cache-dir pydantic==1.10.13
 RUN pip install --no-cache-dir --no-deps -r requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+# Copy backend code explicitly
+COPY backend ./app
 
 CMD ["gunicorn", "app.main:app", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8080"]
