@@ -13,7 +13,7 @@ WORKDIR /app
 
 COPY requirements.txt .
 
-# Upgrade pip first (important)
+# Upgrade pip first
 RUN pip install --upgrade pip
 
 # Install Python dependencies
@@ -21,7 +21,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Railway provides PORT automatically
-CMD gunicorn app.main:app \
-    -k uvicorn.workers.UvicornWorker \
-    --bind 0.0.0.0:$PORT
+# Railway provides PORT automatically — force shell expansion
+CMD ["sh", "-c", "gunicorn app.main:app -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:${PORT}"]
