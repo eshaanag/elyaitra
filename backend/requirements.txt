@@ -10,7 +10,7 @@ gunicorn==21.2.0
 uvicorn==0.23.2
 
 # === DATABASE / VECTOR ===
-chromadb==0.3.23
+chromadb==0.4.22
 hnswlib==0.8.0
 
 # === ASYNC / HTTP ===
