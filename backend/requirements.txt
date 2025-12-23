@@ -118,3 +118,4 @@ zstandard==0.25.0
 razorpay
 google-generativeai
 langchain-text-splitters
+gunicorn==21.2.0
