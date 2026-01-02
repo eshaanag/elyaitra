@@ -1,4 +1,3 @@
-from app.ai_engine.ingest import ingest
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os

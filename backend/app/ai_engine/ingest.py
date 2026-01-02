@@ -35,6 +35,8 @@ print("📄 Files found:", os.listdir(DATA_PATH))
 # --------------------------------------------------
 # CHROMA INIT
 # --------------------------------------------------
+import os
+os.environ["ANONYMIZED_TELEMETRY"] = "false"
 client = chromadb.PersistentClient(path=CHROMA_PATH)
 
 existing = [c.name for c in client.list_collections()]

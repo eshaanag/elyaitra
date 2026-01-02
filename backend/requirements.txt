@@ -4,6 +4,7 @@ starlette==0.27.0
 pydantic==1.10.13
 typing_extensions>=4.5.0
 
+
 # === SERVER ===
 uvicorn==0.23.2
 gunicorn==21.2.0
@@ -42,3 +43,4 @@ langchain==0.1.16
 
 # === PAYMENTS ===
 razorpay==1.4.2
+chromadb
