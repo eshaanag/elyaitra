@@ -81,7 +81,7 @@ def ingest():
         # ✅ Extract unit from filename (unit1.txt → 1)
         unit = None
         if file.lower().startswith("unit"):
-            unit = file.lower().replace("unit", "").replace(".txt", "")
+            unit = int(file.lower().replace("unit", "").replace(".txt", ""))
 
         files_processed += 1
         print("📄 Reading:", file, "| unit:", unit)
