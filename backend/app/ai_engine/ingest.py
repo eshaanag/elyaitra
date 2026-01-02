@@ -2,7 +2,7 @@ import os
 import chromadb
 from dotenv import load_dotenv
 import google.generativeai as genai
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 # --------------------------------------------------
 # ENV
@@ -11,16 +11,20 @@ load_dotenv()
 
 API_KEY = os.getenv("GEMINI_API_KEY")
 if not API_KEY:
-    raise RuntimeError("GEMINI_API_KEY not set")
+    raise RuntimeError("❌ GEMINI_API_KEY not set")
 
 genai.configure(api_key=API_KEY)
 
 # --------------------------------------------------
-# PATHS
+# PATHS (PRODUCTION-SAFE)
 # --------------------------------------------------
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))          # app/ai_engine
+PROJECT_ROOT = os.path.dirname(os.path.dirname(BASE_DIR))     # app/
 CHROMA_PATH = os.path.join(BASE_DIR, "storage")
-DATA_PATH = r"C:\Users\asus\Documents\GitHub\elyaitra\syllabus_data\chemistry"
+DATA_PATH = os.path.join(PROJECT_ROOT, "syllabus_data", "chemistry")
+
+if not os.path.exists(DATA_PATH):
+    raise RuntimeError(f"❌ syllabus_data not found at {DATA_PATH}")
 
 print("📁 Chroma path:", CHROMA_PATH)
 print("📁 Data path:", DATA_PATH)
@@ -39,7 +43,7 @@ if "data" in existing:
 collection = client.get_or_create_collection(name="data")
 
 # --------------------------------------------------
-# SPLITTER
+# TEXT SPLITTER
 # --------------------------------------------------
 splitter = RecursiveCharacterTextSplitter(
     chunk_size=300,
@@ -57,37 +61,49 @@ def embed(text: str) -> list[float]:
     return result["embedding"]
 
 # --------------------------------------------------
-# INDEX FILES
+# INGESTION LOGIC
 # --------------------------------------------------
-doc_id = 0
-files_processed = 0
-chunks_added = 0
+def ingest():
+    doc_id = 0
+    files_processed = 0
+    chunks_added = 0
 
-for file in os.listdir(DATA_PATH):
-    if not file.lower().endswith(".txt"):
-        continue
+    for file in os.listdir(DATA_PATH):
+        if not file.lower().endswith(".txt"):
+            continue
 
-    files_processed += 1
-    print("📄 Reading:", file)
+        files_processed += 1
+        print("📄 Reading:", file)
 
-    path = os.path.join(DATA_PATH, file)
-    with open(path, "r", encoding="utf-8") as f:
-        text = f.read().strip()
+        path = os.path.join(DATA_PATH, file)
+        with open(path, "r", encoding="utf-8") as f:
+            text = f.read().strip()
 
-    if not text:
-        print("⚠️ Skipping empty file:", file)
-        continue
+        if not text:
+            print("⚠️ Skipping empty file:", file)
+            continue
 
-    chunks = splitter.split_text(text)
+        chunks = splitter.split_text(text)
 
-    for chunk in chunks:
-        collection.add(
-            documents=[chunk],
-            embeddings=[embed(chunk)],
-            metadatas=[{"source": file, "subject": "chemistry"}],
-            ids=[f"chemistry_{doc_id}"]
-        )
-        doc_id += 1
-        chunks_added += 1
+        for chunk in chunks:
+            collection.add(
+                documents=[chunk],
+                embeddings=[embed(chunk)],
+                metadatas=[{
+                    "subject": "chemistry",
+                    "source": file
+                }],
+                ids=[f"chemistry_{doc_id}"]
+            )
+            doc_id += 1
+            chunks_added += 1
 
-print(f"✅ Re-indexing complete | files={files_processed}, chunks={chunks_added}")
+    print(
+        f"✅ Re-indexing complete | files={files_processed}, chunks={chunks_added}"
+    )
+
+# --------------------------------------------------
+# ALLOW MANUAL RUN
+# --------------------------------------------------
+if __name__ == "__main__":
+    ingest()
