@@ -30,7 +30,7 @@ def retrieve(question: str, subject: str, unit: int, k: int = 5):
         results = collection.query(
             query_embeddings=[embed(question)],
             n_results=k,
-            where={"unit": str(unit)}  # 🔥 MUST BE STRING
+            where={"unit": unit}  # 🔥 MUST BE STRING
         )
 
         return results.get("documents", [[]])[0]

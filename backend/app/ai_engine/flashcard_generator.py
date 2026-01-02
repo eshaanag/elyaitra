@@ -1,33 +1,52 @@
 import google.generativeai as genai
 
-def generate_flashcards(chunks: list[str]) -> list[dict]:
-    """
-    Convert syllabus chunks into exam-focused flashcards
-    """
+model = genai.GenerativeModel("gemini-2.5-flash")
+
+def generate_flashcards(docs: list[str]) -> list[dict]:
+    if not docs:
+        return []
+
     prompt = f"""
 You are an exam-oriented tutor.
-Create concise flashcards ONLY from the syllabus content below.
+
+Convert the following syllabus content into concise flashcards.
 
 Rules:
-- No outside knowledge
-- Simple exam language
-- Question + short answer
-- 5 to 10 flashcards max
+- Focus strictly on syllabus concepts
+- Simple definitions, laws, principles
+- No extra explanation
+- Generate EXACTLY 5 flashcards
+- Format strictly as:
 
-Syllabus:
-{chr(10).join(chunks)}
+Q: question
+A: answer
+
+Syllabus content:
+{chr(10).join(docs)}
 """
 
-    response = genai.generate_content(prompt)
-    text = response.text.strip()
+    try:
+        response = model.generate_content(prompt)
 
-    flashcards = []
-    for line in text.split("\n"):
-        if ":" in line:
-            q, a = line.split(":", 1)
-            flashcards.append({
-                "question": q.strip(),
-                "answer": a.strip()
-            })
+        if not response or not response.text:
+            return []
 
-    return flashcards
+        flashcards = []
+        q = None
+
+        for line in response.text.splitlines():
+            line = line.strip()
+            if line.startswith("Q:"):
+                q = line[2:].strip()
+            elif line.startswith("A:") and q:
+                flashcards.append({
+                    "question": q,
+                    "answer": line[2:].strip()
+                })
+                q = None
+
+        return flashcards[:5]
+
+    except Exception as e:
+        print("❌ Generation failed:", e)
+        return []
