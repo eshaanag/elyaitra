@@ -37,5 +37,8 @@ scipy==1.11.4
 # === GOOGLE GEMINI ===
 google-generativeai==0.3.2
 
+# === LANGCHAIN (TEXT SPLITTING) ===
+langchain==0.1.16
+
 # === PAYMENTS ===
 razorpay==1.4.2
