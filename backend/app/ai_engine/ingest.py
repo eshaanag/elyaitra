@@ -113,22 +113,6 @@ def ingest():
         f"✅ Re-indexing complete | files={files_processed}, chunks={chunks_added}"
     )
 
-
-for chunk in chunks:
-    collection.add(
-        documents=[chunk],
-        embeddings=[embed(chunk)],
-        metadatas=[{
-            "subject": subject,
-            "unit": unit,          # ✅ REQUIRED
-            "source": file
-        }],
-        ids=[f"chemistry_{doc_id}"]
-    )
-    doc_id += 1
-    chunks_added += 1
-
-
 # --------------------------------------------------
 # ALLOW MANUAL RUN
 # --------------------------------------------------
