@@ -18,10 +18,12 @@ genai.configure(api_key=API_KEY)
 # --------------------------------------------------
 # PATHS (PRODUCTION-SAFE)
 # --------------------------------------------------
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))          # app/ai_engine
-PROJECT_ROOT = os.path.dirname(os.path.dirname(BASE_DIR))     # app/
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))   # /app/app/ai_engine
+APP_DIR = os.path.dirname(BASE_DIR)                     # /app/app
+REPO_ROOT = os.path.dirname(APP_DIR)                    # /app
+
 CHROMA_PATH = os.path.join(BASE_DIR, "storage")
-DATA_PATH = os.path.join(PROJECT_ROOT, "syllabus_data", "chemistry")
+DATA_PATH = os.path.join(REPO_ROOT, "syllabus_data", "chemistry")
 
 if not os.path.exists(DATA_PATH):
     raise RuntimeError(f"❌ syllabus_data not found at {DATA_PATH}")
