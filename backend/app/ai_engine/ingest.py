@@ -15,16 +15,17 @@ if not API_KEY:
 
 genai.configure(api_key=API_KEY)
 
+SUBJECT = "chemistry"
 
 # --------------------------------------------------
-# PATHS (FINAL — WORKS LOCALLY + RAILWAY)
+# PATHS
 # --------------------------------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))      # backend/app/ai_engine
 APP_DIR = os.path.dirname(BASE_DIR)                        # backend/app
 BACKEND_DIR = os.path.dirname(APP_DIR)                     # backend
 
 CHROMA_PATH = os.path.join(BASE_DIR, "storage")
-DATA_PATH = os.path.join(BACKEND_DIR, "syllabus_data", "chemistry")
+DATA_PATH = os.path.join(BACKEND_DIR, "syllabus_data", SUBJECT)
 
 if not os.path.exists(DATA_PATH):
     raise RuntimeError(f"❌ syllabus_data not found at {DATA_PATH}")
@@ -33,23 +34,22 @@ print("📁 Chroma path:", CHROMA_PATH)
 print("📁 Data path:", DATA_PATH)
 print("📄 Files found:", os.listdir(DATA_PATH))
 
-
 # --------------------------------------------------
 # CHROMA INIT
 # --------------------------------------------------
-import os
 os.environ["ANONYMIZED_TELEMETRY"] = "false"
 client = chromadb.PersistentClient(path=CHROMA_PATH)
 
+# clean re-index
 existing = [c.name for c in client.list_collections()]
-if "data" in existing:
+if SUBJECT in existing:
     print("🧹 Deleting old collection...")
-    client.delete_collection("data")
+    client.delete_collection(SUBJECT)
 
-collection = client.get_or_create_collection(name="chemistry")
+collection = client.get_or_create_collection(name=SUBJECT)
 
 # --------------------------------------------------
-# TEXT SPLITTER
+# SPLITTER
 # --------------------------------------------------
 splitter = RecursiveCharacterTextSplitter(
     chunk_size=300,
@@ -57,7 +57,7 @@ splitter = RecursiveCharacterTextSplitter(
 )
 
 # --------------------------------------------------
-# GEMINI EMBEDDING FUNCTION
+# EMBEDDING
 # --------------------------------------------------
 def embed(text: str) -> list[float]:
     result = genai.embed_content(
@@ -67,7 +67,7 @@ def embed(text: str) -> list[float]:
     return result["embedding"]
 
 # --------------------------------------------------
-# INGESTION LOGIC
+# INGEST
 # --------------------------------------------------
 def ingest():
     doc_id = 0
@@ -78,21 +78,16 @@ def ingest():
         if not file.lower().endswith(".txt"):
             continue
 
+        unit = int(file.replace("unit", "").replace(".txt", ""))
+        print(f"📄 Reading: {file} | unit: {unit}")
         files_processed += 1
 
-        # infer unit from filename: unit1.txt → 1
-        unit = int(file.replace("unit", "").replace(".txt", ""))
-
-        print(f"📄 Reading: {file} | unit: {unit}")
-
-        path = os.path.join(DATA_PATH, file)
-        with open(path, "r", encoding="utf-8") as f:
+        with open(os.path.join(DATA_PATH, file), "r", encoding="utf-8") as f:
             text = f.read().strip()
 
         if not text:
             continue
 
-        # ✅ SPLIT MUST BE HERE
         chunks = splitter.split_text(text)
 
         for chunk in chunks:
@@ -100,21 +95,16 @@ def ingest():
                 documents=[chunk],
                 embeddings=[embed(chunk)],
                 metadatas=[{
-                    "subject": "chemistry",
+                    "subject": SUBJECT,
                     "unit": unit,
                     "source": file
                 }],
-                ids=[f"chemistry_{doc_id}"]
+                ids=[f"{SUBJECT}_{doc_id}"]
             )
             doc_id += 1
             chunks_added += 1
 
-    print(
-        f"✅ Re-indexing complete | files={files_processed}, chunks={chunks_added}"
-    )
+    print(f"✅ Re-indexing complete | files={files_processed}, chunks={chunks_added}")
 
-# --------------------------------------------------
-# ALLOW MANUAL RUN
-# --------------------------------------------------
 if __name__ == "__main__":
     ingest()

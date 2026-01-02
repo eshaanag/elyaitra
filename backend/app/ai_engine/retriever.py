@@ -21,6 +21,9 @@ def embed(text: str) -> list[float]:
 
 
 def retrieve(question: str, subject: str, unit: int, k: int = 5):
+    """
+    Returns syllabus chunks filtered by subject + unit
+    """
     try:
         collection = get_collection(subject)
 
