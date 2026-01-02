@@ -11,6 +11,6 @@ RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app ./app
-COPY syllabus_data ./syllabus_data   # ✅ THIS FIXES EVERYTHING
+COPY syllabus_data ./syllabus_data
 
 CMD ["gunicorn", "app.main:app", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8080"]
