@@ -40,10 +40,13 @@ def retrieve(question: str, subject: str, unit: int, k: int = 5):
             query_embeddings=[embed(question)],
             n_results=k,
             where={
-                "subject": subject,
-                "unit": unit      # INT matches ingestion
+                "$and": [
+                    {"subject": subject},
+                    {"unit": unit}
+                ]
             }
         )
+
 
         return results.get("documents", [[]])[0]
 
