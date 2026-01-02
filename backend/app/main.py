@@ -23,9 +23,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+from app.ai_engine.ingest import ingest
+
 @app.on_event("startup")
 def startup_event():
-    init_db()
+    try:
+        print("➡️ Running syllabus ingestion...")
+        ingest()
+    except Exception as e:
+        print("⚠️ Ingestion skipped:", e)
 
 
 
