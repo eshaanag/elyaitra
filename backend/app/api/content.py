@@ -57,6 +57,7 @@ def get_flashcards(subject: str, unit: int, user_id: int):
         return []
 
     # 🧠 STEP 3: Generate flashcards
+    unit = int(unit)
     try:
         flashcards = generate_flashcards(docs)
     except Exception as e:

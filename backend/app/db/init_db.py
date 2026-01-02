@@ -39,7 +39,7 @@ def init_db():
     CREATE TABLE IF NOT EXISTS flowcharts (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         subject TEXT NOT NULL,
-        unit TEXT NOT NULL,
+        unit INTEGER NOT NULL,
         title TEXT NOT NULL,
         image_path TEXT NOT NULL
     )
