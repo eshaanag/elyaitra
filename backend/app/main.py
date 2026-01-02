@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 import os
 
 from app.api.health import router as health_router
@@ -10,25 +9,9 @@ from app.api.access import router as access_router
 from app.api.content import router as content_router
 from app.db.init_db import init_db
 
-# ❌ REMOVE / COMMENT THIS
-# from app.api.ai import router as ai_router
-
-
 app = FastAPI(title="Elyaitra Backend", version="0.1.0")
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-STATIC_DIR = os.path.join(BASE_DIR, "static")
-
-# ✅ ensure static directory exists (important for deployment)
-os.makedirs(STATIC_DIR, exist_ok=True)
-
-app.mount(
-    "/static",
-    StaticFiles(directory=STATIC_DIR),
-    name="static",
-)
-
-
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -45,21 +28,14 @@ app.add_middleware(
 def startup_event():
     init_db()
 
-# Routers (SAFE)
+# Routers
 app.include_router(health_router)
 app.include_router(auth_router)
 app.include_router(content_router)
 app.include_router(payments_router)
 app.include_router(access_router)
 
-# ❌ DO NOT INCLUDE AI ROUTER YET
-# app.include_router(ai_router)
-import uvicorn
-
 if __name__ == "__main__":
+    import uvicorn
     port = int(os.environ.get("PORT", 8000))
-    uvicorn.run(
-        "app.main:app",
-        host="0.0.0.0",
-        port=port
-    )
+    uvicorn.run("app.main:app", host="0.0.0.0", port=port)
