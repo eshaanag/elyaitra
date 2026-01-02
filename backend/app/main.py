@@ -17,12 +17,17 @@ from app.db.init_db import init_db
 app = FastAPI(title="Elyaitra Backend", version="0.1.0")
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+
+# ✅ ensure static directory exists (important for deployment)
+os.makedirs(STATIC_DIR, exist_ok=True)
 
 app.mount(
     "/static",
-    StaticFiles(directory=os.path.join(BASE_DIR, "static")),
+    StaticFiles(directory=STATIC_DIR),
     name="static",
 )
+
 
 app.add_middleware(
     CORSMiddleware,
