@@ -80,9 +80,8 @@ def ingest():
 
         files_processed += 1
 
-        # 🔹 infer unit from filename (unit1.txt → 1)
-        unit = int("".join(filter(str.isdigit, file)))
-        subject = "chemistry"
+        # infer unit from filename: unit1.txt → 1
+        unit = int(file.replace("unit", "").replace(".txt", ""))
 
         print(f"📄 Reading: {file} | unit: {unit}")
 
@@ -91,10 +90,9 @@ def ingest():
             text = f.read().strip()
 
         if not text:
-            print("⚠️ Skipping empty file:", file)
             continue
 
-        # ✅ text is defined HERE
+        # ✅ SPLIT MUST BE HERE
         chunks = splitter.split_text(text)
 
         for chunk in chunks:
@@ -102,11 +100,11 @@ def ingest():
                 documents=[chunk],
                 embeddings=[embed(chunk)],
                 metadatas=[{
-                    "subject": subject,
+                    "subject": "chemistry",
                     "unit": unit,
                     "source": file
                 }],
-                ids=[f"{subject}_{doc_id}"]
+                ids=[f"chemistry_{doc_id}"]
             )
             doc_id += 1
             chunks_added += 1
@@ -115,8 +113,6 @@ def ingest():
         f"✅ Re-indexing complete | files={files_processed}, chunks={chunks_added}"
     )
 
-
-chunks = splitter.split_text(text)
 
 for chunk in chunks:
     collection.add(
