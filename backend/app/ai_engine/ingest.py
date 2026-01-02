@@ -76,8 +76,13 @@ def ingest():
         if not file.lower().endswith(".txt"):
             continue
 
+        # ✅ Extract unit from filename (unit1.txt → 1)
+        unit = None
+        if file.lower().startswith("unit"):
+            unit = file.lower().replace("unit", "").replace(".txt", "")
+
         files_processed += 1
-        print("📄 Reading:", file)
+        print("📄 Reading:", file, "| unit:", unit)
 
         path = os.path.join(DATA_PATH, file)
         with open(path, "r", encoding="utf-8") as f:
@@ -95,6 +100,7 @@ def ingest():
                 embeddings=[embed(chunk)],
                 metadatas=[{
                     "subject": "chemistry",
+                    "unit": unit,          # ✅ THIS FIXES EVERYTHING
                     "source": file
                 }],
                 ids=[f"chemistry_{doc_id}"]
