@@ -78,13 +78,13 @@ def ingest():
         if not file.lower().endswith(".txt"):
             continue
 
-        # ✅ Extract unit from filename (unit1.txt → 1)
-        unit = None
-        if file.lower().startswith("unit"):
-            unit = int(file.lower().replace("unit", "").replace(".txt", ""))
-
         files_processed += 1
-        print("📄 Reading:", file, "| unit:", unit)
+
+        # 🔹 infer unit from filename (unit1.txt → 1)
+        unit = int("".join(filter(str.isdigit, file)))
+        subject = "chemistry"
+
+        print(f"📄 Reading: {file} | unit: {unit}")
 
         path = os.path.join(DATA_PATH, file)
         with open(path, "r", encoding="utf-8") as f:
@@ -93,6 +93,28 @@ def ingest():
         if not text:
             print("⚠️ Skipping empty file:", file)
             continue
+
+        # ✅ text is defined HERE
+        chunks = splitter.split_text(text)
+
+        for chunk in chunks:
+            collection.add(
+                documents=[chunk],
+                embeddings=[embed(chunk)],
+                metadatas=[{
+                    "subject": subject,
+                    "unit": unit,
+                    "source": file
+                }],
+                ids=[f"{subject}_{doc_id}"]
+            )
+            doc_id += 1
+            chunks_added += 1
+
+    print(
+        f"✅ Re-indexing complete | files={files_processed}, chunks={chunks_added}"
+    )
+
 
 chunks = splitter.split_text(text)
 
