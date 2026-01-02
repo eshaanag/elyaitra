@@ -11,7 +11,7 @@ const nextConfig: NextConfig = {
             value: `
               default-src 'self';
               connect-src 'self'
-                https://elyaitra-backend.onrender.com
+                https://elyaitra-production.up.railway.app
                 https://api.razorpay.com;
               img-src 'self' data:;
               script-src 'self'
