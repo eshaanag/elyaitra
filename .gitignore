@@ -1,5 +1,5 @@
 chroma_db/
-syllabus_data/
+# syllabus_data/
 .cache/
 venv/
 __pycache__/
