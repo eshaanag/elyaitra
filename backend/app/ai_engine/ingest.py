@@ -15,15 +15,16 @@ if not API_KEY:
 
 genai.configure(api_key=API_KEY)
 
+
 # --------------------------------------------------
-# PATHS (PRODUCTION-SAFE)
+# PATHS (FINAL — WORKS LOCALLY + RAILWAY)
 # --------------------------------------------------
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))   # /app/app/ai_engine
-APP_DIR = os.path.dirname(BASE_DIR)                     # /app/app
-REPO_ROOT = os.path.dirname(APP_DIR)                    # /app
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))      # backend/app/ai_engine
+APP_DIR = os.path.dirname(BASE_DIR)                        # backend/app
+BACKEND_DIR = os.path.dirname(APP_DIR)                     # backend
 
 CHROMA_PATH = os.path.join(BASE_DIR, "storage")
-DATA_PATH = os.path.join(REPO_ROOT, "syllabus_data", "chemistry")
+DATA_PATH = os.path.join(BACKEND_DIR, "syllabus_data", "chemistry")
 
 if not os.path.exists(DATA_PATH):
     raise RuntimeError(f"❌ syllabus_data not found at {DATA_PATH}")
@@ -31,6 +32,7 @@ if not os.path.exists(DATA_PATH):
 print("📁 Chroma path:", CHROMA_PATH)
 print("📁 Data path:", DATA_PATH)
 print("📄 Files found:", os.listdir(DATA_PATH))
+
 
 # --------------------------------------------------
 # CHROMA INIT
