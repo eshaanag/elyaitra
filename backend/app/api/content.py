@@ -8,27 +8,28 @@ router = APIRouter(prefix="/content", tags=["content"])
 
 @router.get("/flashcards")
 def get_flashcards(subject: str, unit: int, user_id: int):
-
-    # 🔐 PAYMENT CHECK
     conn = get_db_connection()
     cursor = conn.cursor()
 
+    # 🔐 Check payment
     cursor.execute(
         "SELECT 1 FROM payments WHERE user_id = ? AND status = 'success'",
         (user_id,)
     )
-    if not cursor.fetchone():
+    paid = cursor.fetchone() is not None
+
+    if not paid:
         conn.close()
         raise HTTPException(status_code=403, detail="Payment required")
 
-    # 🔁 CHECK DB FIRST
+    # 🔁 STEP 1: Check existing flashcards
     cursor.execute(
         """
         SELECT question, answer
         FROM flashcards
         WHERE subject = ? AND unit = ?
         """,
-        (subject, unit)
+        (subject, unit),
     )
     rows = cursor.fetchall()
 
@@ -39,21 +40,39 @@ def get_flashcards(subject: str, unit: int, user_id: int):
             for q, a in rows
         ]
 
-    # 🧠 FIRST TIME → GENERATE
-    docs = retrieve(
-        question="important exam concepts",
-        subject=subject,
-        unit=unit
-    )
+    # 🧠 STEP 2: Retrieve syllabus chunks
+    try:
+        docs = retrieve(
+            question="important exam concepts",
+            subject=subject,
+            unit=unit
+        )
+    except Exception as e:
+        print("❌ Retrieval failed:", e)
+        conn.close()
+        return []
 
     if not docs:
         conn.close()
         return []
 
-    flashcards = generate_flashcards(docs)
+    # 🧠 STEP 3: Generate flashcards
+    try:
+        flashcards = generate_flashcards(docs)
+    except Exception as e:
+        print("❌ Generation failed:", e)
+        conn.close()
+        return []
 
-    # 💾 SAVE TO DB
+    if not flashcards:
+        conn.close()
+        return []
+
+    # 💾 STEP 4: Save to DB
     for fc in flashcards:
+        if "question" not in fc or "answer" not in fc:
+            continue
+
         cursor.execute(
             """
             INSERT INTO flashcards (subject, unit, question, answer)
@@ -65,4 +84,6 @@ def get_flashcards(subject: str, unit: int, user_id: int):
     conn.commit()
     conn.close()
 
+    # ✅ STEP 5: Return generated flashcards
     return flashcards
+
