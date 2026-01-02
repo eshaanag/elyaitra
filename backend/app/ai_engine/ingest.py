@@ -46,7 +46,7 @@ if "data" in existing:
     print("🧹 Deleting old collection...")
     client.delete_collection("data")
 
-collection = client.get_or_create_collection(name="data")
+collection = client.get_or_create_collection(name="chemistry")
 
 # --------------------------------------------------
 # TEXT SPLITTER
