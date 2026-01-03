@@ -28,14 +28,17 @@ from app.ai_engine.ingest import ingest
 @app.on_event("startup")
 def startup_event():
     try:
-        print("➡️ Initializing database...")
-        init_db()
-        print("✅ Database initialized")
+        print("🚀 Backend started")
+
+        # ❌ DO NOT run this on every restart
+        # init_db()
 
         print("➡️ Running syllabus ingestion...")
         ingest()
+
     except Exception as e:
         print("⚠️ Startup step failed:", e)
+
 
 
 

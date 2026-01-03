@@ -56,7 +56,7 @@ def init_db():
     if exists == 0:
         cursor.execute(
             """
-            INSERT INTO flashcards (subject, unit, question, answer)
+            INSERT IseNTO flashcards (subject, unit, question, answer)
             VALUES (?, ?, ?, ?)
             """,
             (
