@@ -1,9 +1,11 @@
+# backend/app/db/database.py
 import sqlite3
-from pathlib import Path
+import os
 
-DB_PATH = Path(__file__).resolve().parent / "elyaitra.db"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "elyaitra.db")
 
 def get_db_connection():
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     return conn
