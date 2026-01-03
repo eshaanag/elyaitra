@@ -28,10 +28,15 @@ from app.ai_engine.ingest import ingest
 @app.on_event("startup")
 def startup_event():
     try:
+        print("➡️ Initializing database...")
+        init_db()
+        print("✅ Database initialized")
+
         print("➡️ Running syllabus ingestion...")
         ingest()
     except Exception as e:
-        print("⚠️ Ingestion skipped:", e)
+        print("⚠️ Startup step failed:", e)
+
 
 
 
