@@ -1,6 +1,7 @@
 chroma_db/
 .cache/
 venv/
+backend/.venv/
 __pycache__/
 *.onnx
 *.bin
