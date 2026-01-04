@@ -15,15 +15,12 @@ app = FastAPI(title="Elyaitra Backend", version="0.1.0")
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "https://elyaitra.com",
-        "https://www.elyaitra.com",
-    ],
+    allow_origins=["*"],  # 👈 TEMP FIX
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 @app.on_event("startup")
 def startup_event():
