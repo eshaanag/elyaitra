@@ -73,7 +73,7 @@ export default function PaymentPage() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               user_id: Number(localStorage.getItem("user_id")),
-              amount: 69,
+              amount: 1,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_order_id: response.razorpay_order_id,
               razorpay_signature: response.razorpay_signature,
@@ -128,7 +128,7 @@ export default function PaymentPage() {
 
             <div className="my-6 text-center">
               <span className="text-5xl font-extrabold text-zinc-900">
-                ₹69
+                ₹1
               </span>
               <p className="mt-1 text-sm text-zinc-500">
                 Pay once • No subscription
