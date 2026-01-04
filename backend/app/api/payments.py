@@ -1,13 +1,19 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 import razorpay
 import os
 import hmac
 import hashlib
-from app.db.database import get_db_connection
+
+from app.db.database import get_db
+from app.models.payment import Payment
 
 router = APIRouter(prefix="/payments", tags=["payments"])
 
+# -------------------------
+# Razorpay client
+# -------------------------
 client = razorpay.Client(
     auth=(
         os.getenv("RAZORPAY_KEY_ID"),
@@ -15,7 +21,9 @@ client = razorpay.Client(
     )
 )
 
-
+# -------------------------
+# Request schema
+# -------------------------
 class PaymentRequest(BaseModel):
     user_id: int
     amount: int
@@ -24,6 +32,9 @@ class PaymentRequest(BaseModel):
     razorpay_signature: str
 
 
+# -------------------------
+# Create Razorpay Order
+# -------------------------
 @router.post("/create-order")
 def create_order():
     amount_rupees = 1
@@ -38,9 +49,15 @@ def create_order():
     return order
 
 
+# -------------------------
+# Record Payment
+# -------------------------
 @router.post("/record")
-def record_payment(data: PaymentRequest):
-    # 🔐 Verify signature
+def record_payment(
+    data: PaymentRequest,
+    db: Session = Depends(get_db)
+):
+    # 🔐 Verify Razorpay signature
     message = f"{data.razorpay_order_id}|{data.razorpay_payment_id}"
     secret = os.getenv("RAZORPAY_KEY_SECRET")
 
@@ -51,38 +68,29 @@ def record_payment(data: PaymentRequest):
     ).hexdigest()
 
     if generated_signature != data.razorpay_signature:
-        return {"status": "failed", "reason": "Invalid signature"}
+        raise HTTPException(status_code=400, detail="Invalid signature")
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    # ✅ CHECK IF USER ALREADY PAID
-    cursor.execute(
-        """
-        SELECT 1 FROM payments
-        WHERE user_id = ?
-        AND status = 'success'
-        LIMIT 1
-        """,
-        (data.user_id,)
+    # ✅ Check if user already paid
+    already_paid = (
+        db.query(Payment)
+        .filter(
+            Payment.user_id == data.user_id,
+            Payment.status == "success"
+        )
+        .first()
     )
-
-    already_paid = cursor.fetchone()
 
     if already_paid:
-        conn.close()
         return {"status": "success", "message": "Already paid"}
 
-    # ✅ INSERT PAYMENT ONCE
-    cursor.execute(
-        """
-        INSERT INTO payments (user_id, amount, status)
-        VALUES (?, ?, 'success')
-        """,
-        (data.user_id, data.amount)
+    # ✅ Insert payment
+    payment = Payment(
+        user_id=data.user_id,
+        amount=data.amount,
+        status="success"
     )
 
-    conn.commit()
-    conn.close()
+    db.add(payment)
+    db.commit()
 
     return {"status": "success"}
