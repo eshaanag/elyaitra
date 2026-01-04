@@ -26,7 +26,7 @@ export default function PaymentPage() {
 
       try {
         const res = await fetch(
-          `${API_URL}/payments/status?user_id=${userId}`
+          `${API_URL}/access/subjects?user_id=${userId}`
         );
         const data = await res.json();
 
