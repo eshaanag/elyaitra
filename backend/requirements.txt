@@ -10,7 +10,7 @@ gunicorn==21.2.0
 
 # === DATABASE ===
 sqlalchemy==2.0.25
-
+email-validator
 # === VECTOR STORE ===
 chromadb==0.4.22
 hnswlib==0.8.0
