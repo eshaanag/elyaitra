@@ -12,8 +12,12 @@ genai.configure(api_key=API_KEY)
 
 
 class GeminiClient:
-    def __init__(self, model_name: str = "models/gemini-1.5-pro"):
-        self.model = genai.GenerativeModel(model_name)
+    def __init__(self):
+        try:
+            self.model = genai.GenerativeModel("gemini-1.5-flash")
+        except Exception:
+            self.model = genai.GenerativeModel("text-bison-001")
+
 
     def generate(self, prompt: str) -> str:
         try:
