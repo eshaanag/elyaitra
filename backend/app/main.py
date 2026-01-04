@@ -13,14 +13,11 @@ from app.api.ai import router as ai_router
 app = FastAPI(title="Elyaitra Backend", version="0.1.0")
 
 # CORS
+# 🔥 BULLETPROOF CORS (TEMPORARY)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "https://elyaitra.com",
-        "https://www.elyaitra.com",
-    ],
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
