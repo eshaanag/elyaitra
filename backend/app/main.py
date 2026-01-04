@@ -30,18 +30,24 @@ def startup_event():
     try:
         print("🚀 Backend started")
 
-        # ❌ DO NOT run this on every restart
+        # DB init (safe)
         init_db()
 
-        print("➡️ Running syllabus ingestion...")
-        from app.ai_engine.ingest import ingest     
+        # Ingest syllabus ONCE
+        from app.ai_engine.ingest import ingest
         ingest()
+
+        # Warm up Gemini (CRITICAL)
+        from app.ai_engine.llm_client import GeminiClient
+        llm = GeminiClient()
+        try:
+            llm.generate("Warm up")
+            print("🔥 Gemini warmed up")
+        except Exception as e:
+            print("⚠️ Gemini warmup failed:", e)
 
     except Exception as e:
         print("⚠️ Startup step failed:", e)
-
-
-
 
 
 # Routers

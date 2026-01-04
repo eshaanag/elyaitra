@@ -24,28 +24,31 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))      # backend/app/ai_engi
 APP_DIR = os.path.dirname(BASE_DIR)                        # backend/app
 BACKEND_DIR = os.path.dirname(APP_DIR)                     # backend
 
-CHROMA_PATH = os.path.join(BASE_DIR, "storage")
+# ✅ Railway persistent path (fallback to local)
+CHROMA_PATH = os.getenv("CHROMA_PATH", os.path.join(BASE_DIR, "storage"))
+
 DATA_PATH = os.path.join(BACKEND_DIR, "syllabus_data", SUBJECT)
 
 if not os.path.exists(DATA_PATH):
     raise RuntimeError(f"❌ syllabus_data not found at {DATA_PATH}")
+
+os.makedirs(CHROMA_PATH, exist_ok=True)
 
 print("📁 Chroma path:", CHROMA_PATH)
 print("📁 Data path:", DATA_PATH)
 print("📄 Files found:", os.listdir(DATA_PATH))
 
 # --------------------------------------------------
+# INGESTION GUARD (CRITICAL)
+# --------------------------------------------------
+INGEST_FLAG = os.path.join(CHROMA_PATH, ".ingested")
+
+# --------------------------------------------------
 # CHROMA INIT
 # --------------------------------------------------
 os.environ["ANONYMIZED_TELEMETRY"] = "false"
+
 client = chromadb.PersistentClient(path=CHROMA_PATH)
-
-# clean re-index
-existing = [c.name for c in client.list_collections()]
-if SUBJECT in existing:
-    print("🧹 Deleting old collection...")
-    client.delete_collection(SUBJECT)
-
 collection = client.get_or_create_collection(name=SUBJECT)
 
 # --------------------------------------------------
@@ -70,6 +73,11 @@ def embed(text: str) -> list[float]:
 # INGEST
 # --------------------------------------------------
 def ingest():
+    # ✅ Run ONLY once
+    if os.path.exists(INGEST_FLAG):
+        print("✅ Syllabus already ingested. Skipping.")
+        return
+
     doc_id = 0
     files_processed = 0
     chunks_added = 0
@@ -78,7 +86,7 @@ def ingest():
         if not file.lower().endswith(".txt"):
             continue
 
-        unit = int(file.replace("unit", "").replace(".txt", ""))
+        unit = file.replace("unit", "").replace(".txt", "")
         print(f"📄 Reading: {file} | unit: {unit}")
         files_processed += 1
 
@@ -96,7 +104,7 @@ def ingest():
                 embeddings=[embed(chunk)],
                 metadatas=[{
                     "subject": SUBJECT,
-                    "unit": unit,
+                    "unit": str(unit),   # ✅ store as STRING
                     "source": file
                 }],
                 ids=[f"{SUBJECT}_{doc_id}"]
@@ -104,7 +112,12 @@ def ingest():
             doc_id += 1
             chunks_added += 1
 
+    # ✅ Mark ingestion complete
+    with open(INGEST_FLAG, "w") as f:
+        f.write("done")
+
     print(f"✅ Re-indexing complete | files={files_processed}, chunks={chunks_added}")
+
 
 if __name__ == "__main__":
     ingest()

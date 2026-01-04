@@ -22,8 +22,9 @@ class GeminiClient:
         try:
             response = self.model.generate_content(
                 prompt,
-                request_options={"timeout": 8}  # seconds
+                request_options={"timeout": 15}
             )
+
             return response.text or "No response generated."
         except Exception as e:
             print("❌ GEMINI ERROR:", repr(e))
