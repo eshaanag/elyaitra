@@ -10,6 +10,8 @@ llm = GeminiClient()
 # --------------------------------------------------
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROMPT_PATH = os.path.join(BASE_DIR, "prompts", "chat.txt")
+print("PROMPT PATH:", PROMPT_PATH)
+print("PROMPT EXISTS:", os.path.exists(PROMPT_PATH))
 
 with open(PROMPT_PATH, "r", encoding="utf-8") as f:
     SYSTEM_PROMPT = f.read().strip()
