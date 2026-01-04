@@ -7,47 +7,38 @@ from app.api.auth import router as auth_router
 from app.api.payments import router as payments_router
 from app.api.access import router as access_router
 from app.api.content import router as content_router
-from app.db.init_db import init_db
 from app.api.ai import router as ai_router
+from app.db.init_db import init_db
 
 app = FastAPI(title="Elyaitra Backend", version="0.1.0")
 
-# CORS
-# 🔥 BULLETPROOF CORS (TEMPORARY)
+# ---------------------------
+# CORS (STABLE & SAFE)
+# ---------------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origins=[
+        "http://localhost:3000",
+        "https://elyaitra.com",
+        "https://www.elyaitra.com",
+    ],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# ---------------------------
+# STARTUP (FAST ONLY)
+# ---------------------------
 @app.on_event("startup")
 def startup_event():
-    try:
-        print("🚀 Backend started")
+    # ⚠️ KEEP STARTUP LIGHT
+    print("🚀 Backend started")
+    init_db()  # DB table creation only
 
-        # DB init (safe)
-        init_db()
-
-        # Ingest syllabus ONCE
-        from app.ai_engine.ingest import ingest
-        ingest()
-
-        # Warm up Gemini (CRITICAL)
-        from app.ai_engine.llm_client import GeminiClient
-        llm = GeminiClient()
-        try:
-            llm.generate("Warm up")
-            print("🔥 Gemini warmed up")
-        except Exception as e:
-            print("⚠️ Gemini warmup failed:", e)
-
-    except Exception as e:
-        print("⚠️ Startup step failed:", e)
-
-
-# Routers
+# ---------------------------
+# ROUTERS
+# ---------------------------
 app.include_router(health_router)
 app.include_router(auth_router)
 app.include_router(content_router)
@@ -55,7 +46,9 @@ app.include_router(payments_router)
 app.include_router(access_router)
 app.include_router(ai_router)
 
-
+# ---------------------------
+# LOCAL RUN
+# ---------------------------
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8000))
