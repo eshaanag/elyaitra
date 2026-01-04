@@ -10,6 +10,7 @@ llm = GeminiClient()
 # --------------------------------------------------
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROMPT_PATH = os.path.join(BASE_DIR, "prompts", "chat.txt")
+
 print("PROMPT PATH:", PROMPT_PATH)
 print("PROMPT EXISTS:", os.path.exists(PROMPT_PATH))
 
@@ -45,31 +46,33 @@ Question: {question}
 
 def generate_chat_response(question: str, subject: str) -> str:
     """
-    Subject-bounded RAG pipeline:
+    Subject-bounded RAG pipeline
     """
 
+    subject = subject.lower().strip()
     chunks = retrieve(question, subject)
 
     # --------------------------------------------------
-    # Case 1: No syllabus context
+    # Case 1: No syllabus chunks found
     # --------------------------------------------------
     if not chunks:
-        if not is_question_about_subject(question, subject):
-            return "Not in syllabus"
-
         prompt = f"""
 {SYSTEM_PROMPT}
 
 You are an exam-focused tutor for the subject {subject}.
 Answer clearly and concisely.
-Do NOT include content from other subjects.
+If the concept is indirectly related, explain it briefly.
 
 Question:
 {question}
 
 Answer:
 """
-        return llm.generate(prompt)
+        return (
+            "This topic is part of the syllabus, but not explicitly "
+            "covered in the provided text. Here is a brief explanation:\n\n"
+            + llm.generate(prompt)
+        )
 
     # --------------------------------------------------
     # Case 2: Syllabus context found (STRICT RAG)
