@@ -30,10 +30,11 @@ export default function PaymentPage() {
         );
         const data = await res.json();
 
-        if (data.paid) {
+        if (data.allowed) {
           router.push("/subjects");
-          return;
+          return; // ✅ STOP execution
         }
+
       } catch {
         console.error("Failed to check payment status");
       } finally {
