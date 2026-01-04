@@ -32,9 +32,10 @@ export default function PaymentPage() {
 
         if (data.allowed) {
           router.push("/subjects");
-          return; // ✅ STOP execution
+          return;
         }
 
+        // Not paid → stay on payment page
       } catch {
         console.error("Failed to check payment status");
       } finally {
