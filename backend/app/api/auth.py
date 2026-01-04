@@ -1,82 +1,88 @@
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
-from app.db.database import get_db_connection
+from fastapi import APIRouter, HTTPException, Depends
+from pydantic import BaseModel, EmailStr
+from sqlalchemy.orm import Session
+from passlib.context import CryptContext
+
+from app.db.database import get_db
+from app.models.user import User
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
+# -------------------------
+# PASSWORD HANDLING
+# -------------------------
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+def hash_password(password: str) -> str:
+    return pwd_context.hash(password)
+
+
+def verify_password(password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(password, hashed_password)
+
+
+# -------------------------
+# REQUEST SCHEMAS
+# -------------------------
+class SignupRequest(BaseModel):
+    full_name: str
+    email: EmailStr
+    password: str
+
 
 class LoginRequest(BaseModel):
-    email: str
+    email: EmailStr
+    password: str
 
 
-@router.post("/login")
-def login(data: LoginRequest):
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-
-        cursor.execute(
-            "SELECT id FROM users WHERE email = ?",
-            (data.email,)
-        )
-        user = cursor.fetchone()
-
-        if user:
-            user_id = user["id"]
-        else:
-            cursor.execute(
-                "INSERT INTO users (email) VALUES (?)",
-                (data.email,)
-            )
-            conn.commit()
-            user_id = cursor.lastrowid
-
-        conn.close()
-
-        return {
-            "user_id": user_id,
-            "email": data.email
-        }
-
-    except Exception as e:
-        print("❌ Login error:", e)
+# -------------------------
+# SIGNUP (CREATE ACCOUNT)
+# -------------------------
+@router.post("/signup")
+def signup(data: SignupRequest, db: Session = Depends(get_db)):
+    # 1️⃣ Check if email already exists
+    existing_user = db.query(User).filter(User.email == data.email).first()
+    if existing_user:
         raise HTTPException(
-            status_code=500,
-            detail="Login failed"
+            status_code=400,
+            detail="Email already registered"
         )
 
-
-
-@router.get("/me")
-def me(user_id: int):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    cursor.execute(
-        "SELECT id, email FROM users WHERE id = ?",
-        (user_id,)
-    )
-    user = cursor.fetchone()
-
-    if not user:
-        conn.close()
-        raise HTTPException(status_code=404, detail="User not found")
-
-    cursor.execute(
-        """
-        SELECT 1 FROM payments
-        WHERE user_id = ?
-        AND status = 'success'
-        LIMIT 1
-        """,
-        (user_id,)
+    # 2️⃣ Create new user
+    user = User(
+        full_name=data.full_name,
+        email=data.email,
+        password_hash=hash_password(data.password),
     )
 
-    payment = cursor.fetchone()
-    conn.close()
+    # 3️⃣ Save to database
+    db.add(user)
+    db.commit()
+    db.refresh(user)
 
     return {
-        "user_id": user["id"],
-        "email": user["email"],
-        "has_paid": payment is not None
+        "user_id": user.id,
+        "email": user.email
+    }
+
+
+# -------------------------
+# LOGIN
+# -------------------------
+@router.post("/login")
+def login(data: LoginRequest, db: Session = Depends(get_db)):
+    # 1️⃣ Find user by email
+    user = db.query(User).filter(User.email == data.email).first()
+
+    # 2️⃣ Validate credentials
+    if not user or not verify_password(data.password, user.password_hash):
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid email or password"
+        )
+
+    return {
+        "user_id": user.id,
+        "email": user.email
     }
