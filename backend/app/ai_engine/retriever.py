@@ -20,7 +20,7 @@ def embed(text: str) -> list[float]:
     return result["embedding"]
 
 
-def retrieve(question: str, subject: str, unit: int, k: int = 5):
+def retrieve(question: str, subject: str, unit: int | None = None, k: int = 5):
     """
     Returns syllabus chunks filtered by subject + unit
     """
@@ -30,7 +30,7 @@ def retrieve(question: str, subject: str, unit: int, k: int = 5):
         results = collection.query(
             query_embeddings=[embed(question)],
             n_results=k,
-            where={"unit": unit}  # 🔥 MUST BE STRING
+            where={"unit": str(unit)}  # 🔥 MUST BE STRING
         )
 
         return results.get("documents", [[]])[0]

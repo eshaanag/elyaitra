@@ -4,7 +4,7 @@ from chromadb.config import Settings
 
 # Absolute path to: backend/app/ai_engine/storage
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-CHROMA_PATH = os.path.join(BASE_DIR, "storage")
+CHROMA_PATH = os.getenv("CHROMA_PATH", CHROMA_PATH)
 
 # Ensure storage directory exists
 os.makedirs(CHROMA_PATH, exist_ok=True)
