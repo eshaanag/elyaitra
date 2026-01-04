@@ -4,15 +4,22 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
-export default function AuthPage() {
+export default function LoginPage() {
   const router = useRouter();
+
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+
+    if (!email || !password) {
+      setError("Email and password are required");
+      return;
+    }
 
     if (!email.includes("@")) {
       setError("Please enter a valid email");
@@ -28,15 +35,20 @@ export default function AuthPage() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email }),
+          body: JSON.stringify({
+            email,
+            password,
+          }),
         }
       );
 
-      if (!res.ok) throw new Error("Login failed");
-
       const data = await res.json();
 
-      // ✅ persist login
+      if (!res.ok) {
+        throw new Error(data.detail || "Invalid email or password");
+      }
+
+      // ✅ Save user session
       localStorage.setItem("user_id", String(data.user_id));
 
       // 2️⃣ CHECK ACCESS
@@ -44,7 +56,9 @@ export default function AuthPage() {
         `${process.env.NEXT_PUBLIC_API_URL}/access/subjects?user_id=${data.user_id}`
       );
 
-      if (!accessRes.ok) throw new Error("Access check failed");
+      if (!accessRes.ok) {
+        throw new Error("Access check failed");
+      }
 
       const accessData = await accessRes.json();
 
@@ -55,8 +69,8 @@ export default function AuthPage() {
         router.replace("/payment");
       }
 
-    } catch (err) {
-      setError("Something went wrong. Please try again.");
+    } catch (err: any) {
+      setError(err.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -75,7 +89,7 @@ export default function AuthPage() {
         </div>
 
         <h1 className="text-2xl font-bold text-center mb-2">
-          Continue to Elyaitra
+          Log in to Elyaitra
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -88,16 +102,37 @@ export default function AuthPage() {
             className="w-full h-12 px-4 rounded-md border"
           />
 
-          {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            disabled={loading}
+            className="w-full h-12 px-4 rounded-md border"
+          />
+
+          {error && (
+            <p className="text-sm text-red-500 text-center">{error}</p>
+          )}
 
           <button
             type="submit"
             disabled={loading}
             className="w-full h-12 rounded-md bg-primary text-primary-foreground"
           >
-            {loading ? "Please wait..." : "Continue"}
+            {loading ? "Logging in..." : "Log In"}
           </button>
         </form>
+
+        <p className="text-sm text-center mt-4 text-muted-foreground">
+          Don’t have an account?{" "}
+          <button
+            className="underline"
+            onClick={() => router.push("/signup")}
+          >
+            Sign up
+          </button>
+        </p>
       </div>
     </div>
   );
