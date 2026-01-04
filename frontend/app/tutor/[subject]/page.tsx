@@ -174,20 +174,52 @@ export default function TutorPage() {
       });
   }, [activeTab, subject, unit]);
 
-  function handleSend() {
-    if (!input.trim()) return;
+  async function handleSend() {
+  if (!input.trim()) return;
+
+  const question = input;
+  setInput("");
+
+  // Show user message immediately
+  setMessages((prev) => [
+    ...prev,
+    { role: "user", content: question },
+  ]);
+
+  try {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
+    const res = await fetch(`${apiUrl}/ai/chat`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        subject,
+        question,
+      }),
+    });
+
+    const data = await res.json();
 
     setMessages((prev) => [
       ...prev,
-      { role: "user", content: input },
       {
         role: "assistant",
-        content: "This answer is strictly based on the syllabus.",
+        content: data.answer || "No answer received.",
       },
     ]);
-
-    setInput("");
+  } catch (error) {
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: "assistant",
+        content: "Failed to reach the AI tutor. Please try again.",
+      },
+    ]);
   }
+}
+
 
   if (!subjectData) return null;
 
