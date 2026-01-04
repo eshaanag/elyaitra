@@ -20,12 +20,8 @@ class GeminiClient:
 
     def generate(self, prompt: str) -> str:
         try:
-            response = self.model.generate_content(
-                prompt,
-                request_options={"timeout": 15}
-            )
-
+            response = self.model.generate_content(prompt)
             return response.text or "No response generated."
         except Exception as e:
             print("❌ GEMINI ERROR:", repr(e))
-            return "The AI is taking too long to respond. Please try again."
+            return "The AI model is temporarily unavailable. Please try again."
