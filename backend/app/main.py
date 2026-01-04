@@ -31,7 +31,7 @@ def startup_event():
         print("🚀 Backend started")
 
         # ❌ DO NOT run this on every restart
-        # init_db()
+        init_db()
 
         print("➡️ Running syllabus ingestion...")
         ingest()

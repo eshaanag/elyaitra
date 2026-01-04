@@ -11,31 +11,40 @@ class LoginRequest(BaseModel):
 
 @router.post("/login")
 def login(data: LoginRequest):
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
 
-    cursor.execute(
-        "SELECT id FROM users WHERE email = ?",
-        (data.email,)
-    )
-    user = cursor.fetchone()
-
-    if user:
-        user_id = user["id"]
-    else:
         cursor.execute(
-            "INSERT INTO users (email) VALUES (?)",
+            "SELECT id FROM users WHERE email = ?",
             (data.email,)
         )
-        conn.commit()
-        user_id = cursor.lastrowid
+        user = cursor.fetchone()
 
-    conn.close()
+        if user:
+            user_id = user["id"]
+        else:
+            cursor.execute(
+                "INSERT INTO users (email) VALUES (?)",
+                (data.email,)
+            )
+            conn.commit()
+            user_id = cursor.lastrowid
 
-    return {
-        "user_id": user_id,
-        "email": data.email
-    }
+        conn.close()
+
+        return {
+            "user_id": user_id,
+            "email": data.email
+        }
+
+    except Exception as e:
+        print("❌ Login error:", e)
+        raise HTTPException(
+            status_code=500,
+            detail="Login failed"
+        )
+
 
 
 @router.get("/me")
