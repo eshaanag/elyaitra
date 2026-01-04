@@ -11,14 +11,17 @@ API_KEY = os.getenv("GEMINI_API_KEY")
 if not API_KEY:
     raise RuntimeError("GEMINI_API_KEY not set")
 
-# Configure Gemini (NO Client object)
 genai.configure(api_key=API_KEY)
 
 
 class GeminiClient:
-    def __init__(self, model_name: str = "gemini-1.5-flash"):
+    def __init__(self, model_name: str = "models/gemini-pro"):
         self.model = genai.GenerativeModel(model_name)
 
     def generate(self, prompt: str) -> str:
-        response = self.model.generate_content(prompt)
-        return response.text
+        try:
+            response = self.model.generate_content(prompt)
+            return response.text or "No response generated."
+        except Exception as e:
+            print("❌ GEMINI ERROR:", repr(e))
+            return "AI model temporarily unavailable."
