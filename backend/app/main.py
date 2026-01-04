@@ -33,7 +33,7 @@ def startup_event():
         init_db()
 
         print("➡️ Running syllabus ingestion...")
-        from app.ai_engine.ingest import ingest
+        from app.ai_engine.ingest import ingest     
         ingest()
 
     except Exception as e:

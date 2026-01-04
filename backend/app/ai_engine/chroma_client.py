@@ -2,15 +2,21 @@ import os
 import chromadb
 from chromadb.config import Settings
 
-# Absolute path to: backend/app/ai_engine/storage
+# --------------------------------------------------
+# Base default path (LOCAL fallback)
+# --------------------------------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-CHROMA_PATH = os.getenv("CHROMA_PATH", CHROMA_PATH)
+DEFAULT_CHROMA_PATH = os.path.join(BASE_DIR, "storage")
 
-# Ensure storage directory exists
+# --------------------------------------------------
+# Final path (Railway override)
+# --------------------------------------------------
+CHROMA_PATH = os.getenv("CHROMA_PATH", DEFAULT_CHROMA_PATH)
+
+# Ensure directory exists
 os.makedirs(CHROMA_PATH, exist_ok=True)
 
 _client = None
-
 
 def _create_client():
     """
