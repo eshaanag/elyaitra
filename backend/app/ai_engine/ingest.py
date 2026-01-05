@@ -1,19 +1,29 @@
 import os
 import chromadb
 from dotenv import load_dotenv
-import google.generativeai as genai
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from google import genai
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 # --------------------------------------------------
 # ENV
 # --------------------------------------------------
 load_dotenv()
+import os
+from dotenv import load_dotenv
+
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
+ENV_PATH = os.path.join(BASE_DIR, ".env")
+
+load_dotenv(dotenv_path=ENV_PATH)
+
+print("📄 Loading env from:", ENV_PATH)
+print("🔑 GEMINI_API_KEY exists:", bool(os.getenv("GEMINI_API_KEY")))
 
 API_KEY = os.getenv("GEMINI_API_KEY")
 if not API_KEY:
     raise RuntimeError("❌ GEMINI_API_KEY not set")
 
-genai.configure(api_key=API_KEY)
+genai_client = genai.Client(api_key=API_KEY)
 
 SUBJECT = "chemistry"
 
@@ -48,8 +58,9 @@ INGEST_FLAG = os.path.join(CHROMA_PATH, ".ingested")
 # --------------------------------------------------
 os.environ["ANONYMIZED_TELEMETRY"] = "false"
 
-client = chromadb.PersistentClient(path=CHROMA_PATH)
-collection = client.get_or_create_collection(name=SUBJECT)
+chroma_client = chromadb.PersistentClient(path=CHROMA_PATH)
+collection = chroma_client.get_or_create_collection(name=SUBJECT)
+
 
 # --------------------------------------------------
 # SPLITTER
@@ -63,11 +74,12 @@ splitter = RecursiveCharacterTextSplitter(
 # EMBEDDING
 # --------------------------------------------------
 def embed(text: str) -> list[float]:
-    result = genai.embed_content(
-        model="models/text-embedding-004",
+    response = genai_client.embed_content(
+        model="text-embedding-004",
         content=text
     )
-    return result["embedding"]
+    return response["embedding"]
+
 
 # --------------------------------------------------
 # INGEST
