@@ -14,34 +14,33 @@ const subjects = [
   {
     id: "programming",
     title: "Python Programming",
-    description: "Solve algorithms and build strong programming foundations.",
+    description: "Build strong programming and problem-solving skills.",
     icon: Code,
   },
   {
     id: "chemistry",
     title: "Chemistry",
-    description: "Master organic, inorganic, and physical chemistry concepts.",
+    description: "Organic, inorganic, and physical chemistry explained clearly.",
     icon: FlaskConical,
   },
   {
     id: "mechanical",
     title: "Mechanical",
-    description: "Learn mechanics, thermodynamics, and engineering principles.",
+    description: "Mechanics, thermodynamics, and engineering principles.",
     icon: Cog,
   },
 ];
 
 const Subjects = () => {
   const navigate = useNavigate();
-  const [hasAccess, setHasAccess] = useState(false);
-  const [checking, setChecking] = useState(true);
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
 
-  // 🔐 ACCESS CHECK
+  // 🔐 Access check (NO redirect to payment here)
   useEffect(() => {
     const checkAccess = async () => {
       const userId = localStorage.getItem("user_id");
 
-      // 1️⃣ Not logged in → signup
+      // ❗ Only redirect to signup if not logged in
       if (!userId) {
         navigate("/signup", { replace: true });
         return;
@@ -53,19 +52,25 @@ const Subjects = () => {
         );
         const data = await res.json();
 
-        // 2️⃣ Logged in → store access (NO redirect)
         setHasAccess(Boolean(data.allowed));
       } catch {
-        console.error("Failed to check subject access");
-      } finally {
-        setChecking(false);
+        setHasAccess(false);
       }
     };
 
     checkAccess();
   }, [navigate, API_URL]);
 
-  // 🧭 SUBJECT CLICK HANDLER
+  // ⛔ Prevent premature render
+  if (hasAccess === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-white">
+        Loading subjects…
+      </div>
+    );
+  }
+
+  // 👉 Subject click logic (ONLY place payment redirect exists)
   const handleSubjectClick = (id: string) => {
     if (!hasAccess) {
       navigate("/payment");
@@ -74,14 +79,6 @@ const Subjects = () => {
 
     navigate(`/tutor/${id}`);
   };
-
-  if (checking) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-white">
-        Loading subjects…
-      </div>
-    );
-  }
 
   return (
     <div className="dark min-h-screen bg-background">
@@ -101,29 +98,31 @@ const Subjects = () => {
             Choose Your <span className="text-primary">Subject</span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-xl">
-            Select a subject to begin your exam-focused learning journey.
+            Select a subject to begin your learning journey.
           </p>
         </div>
       </section>
 
-      {/* Grid */}
+      {/* Subjects */}
       <section className="px-6 pb-24">
         <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
           {subjects.map((subject) => {
             const Icon = subject.icon;
+
             return (
               <button
                 key={subject.id}
+                type="button"
                 onClick={() => handleSubjectClick(subject.id)}
-                className="group relative text-left p-8 rounded-2xl border border-border/50 bg-card/30 hover:border-primary/50 hover:bg-card/50 transition-all"
+                className="relative text-left p-8 rounded-2xl border border-border/50 bg-card/30 hover:border-primary/50 hover:bg-card/50 transition-all"
               >
                 {!hasAccess && (
-                  <div className="absolute inset-0 rounded-2xl bg-black/40 flex items-center justify-center text-sm font-semibold text-white">
+                  <div className="absolute inset-0 rounded-2xl bg-black/50 flex items-center justify-center text-white font-semibold">
                     Unlock to access
                   </div>
                 )}
 
-                <div className="relative flex gap-4">
+                <div className="flex gap-4 relative">
                   <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
                     <Icon className="w-6 h-6 text-primary" />
                   </div>
