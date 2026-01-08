@@ -7,6 +7,7 @@ const ReactLanding = dynamic(
   { ssr: false }
 );
 
+
 export default function Page() {
   return <ReactLanding />;
 }
