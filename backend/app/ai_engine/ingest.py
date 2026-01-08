@@ -1,11 +1,11 @@
 import os
-import chromadb
 from dotenv import load_dotenv
 import google.generativeai as genai
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
-print("🔥🔥🔥 INGEST FUNCTION CALLED 🔥🔥🔥")
+from app.ai_engine.chroma_client import get_collection
 
+print("🔥🔥🔥 INGEST FUNCTION CALLED 🔥🔥🔥")
 
 # --------------------------------------------------
 # ENV
@@ -27,33 +27,19 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))      # backend/app/ai_engi
 APP_DIR = os.path.dirname(BASE_DIR)                        # backend/app
 BACKEND_DIR = os.path.dirname(APP_DIR)                     # backend
 
-# Railway persistent path (fallback to local)
-CHROMA_PATH = os.getenv("CHROMA_PATH", os.path.join(BASE_DIR, "storage"))
-
 DATA_PATH = os.path.join(BACKEND_DIR, "syllabus_data", SUBJECT)
-print("CHROMA_PATH =", CHROMA_PATH)
+
 print("DATA_PATH =", DATA_PATH)
+
 if not os.path.exists(DATA_PATH):
     raise RuntimeError(f"❌ syllabus_data not found at {DATA_PATH}")
 
-os.makedirs(CHROMA_PATH, exist_ok=True)
-
-print("📁 Chroma path:", CHROMA_PATH)
-print("📁 Data path:", DATA_PATH)
 print("📄 Files found:", os.listdir(DATA_PATH))
 
 # --------------------------------------------------
-# INGESTION GUARD
+# GET SHARED CHROMA COLLECTION (CRITICAL FIX)
 # --------------------------------------------------
-INGEST_FLAG = os.path.join(CHROMA_PATH, ".ingested")
-
-# --------------------------------------------------
-# CHROMA INIT
-# --------------------------------------------------
-os.environ["ANONYMIZED_TELEMETRY"] = "false"
-
-client = chromadb.PersistentClient(path=CHROMA_PATH)
-collection = client.get_or_create_collection(name=SUBJECT)
+collection = get_collection(SUBJECT)
 
 # --------------------------------------------------
 # SPLITTER
@@ -64,7 +50,7 @@ splitter = RecursiveCharacterTextSplitter(
 )
 
 # --------------------------------------------------
-# EMBEDDING FUNCTION (SAME AS RETRIEVER)
+# EMBEDDING FUNCTION
 # --------------------------------------------------
 def embed(text: str) -> list[float]:
     result = genai.embed_content(
@@ -77,10 +63,12 @@ def embed(text: str) -> list[float]:
 # INGEST
 # --------------------------------------------------
 def ingest():
-    # Run only once
-    # if os.path.exists(INGEST_FLAG):
-    #     print("✅ Syllabus already ingested. Skipping.")
-    #     return
+    # ⚠️ FULL RESET (TEMPORARY FOR DEBUG)
+    try:
+        collection.delete(where={})
+        print("🧹 Cleared existing collection")
+    except Exception as e:
+        print("⚠️ Could not clear collection:", e)
 
     doc_id = 0
     files_processed = 0
@@ -98,6 +86,7 @@ def ingest():
             text = f.read().strip()
 
         if not text:
+            print("⚠️ Empty file:", file)
             continue
 
         chunks = splitter.split_text(text)
@@ -115,10 +104,6 @@ def ingest():
             )
             doc_id += 1
             chunks_added += 1
-
-    # Mark ingestion complete
-    # with open(INGEST_FLAG, "w") as f:
-    #     f.write("done")
 
     print(f"✅ Re-indexing complete | files={files_processed}, chunks={chunks_added}")
     print("📊 FINAL CHROMA COUNT:", collection.count())
