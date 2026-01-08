@@ -12,7 +12,7 @@ const Payment = () => {
   const [error, setError] = useState("");
   const [razorpayReady, setRazorpayReady] = useState(false);
 
-  // 1️⃣ Load Razorpay script
+  // Load Razorpay
   useEffect(() => {
     const script = document.createElement("script");
     script.src = "https://checkout.razorpay.com/v1/checkout.js";
@@ -25,11 +25,14 @@ const Payment = () => {
     document.body.appendChild(script);
 
     return () => {
-      document.body.removeChild(script);
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
     };
   }, []);
 
-  // 2️⃣ Check payment status
+
+  // Check access
   useEffect(() => {
     const checkPaymentStatus = async () => {
       const userId = localStorage.getItem("user_id");
@@ -59,10 +62,10 @@ const Payment = () => {
     checkPaymentStatus();
   }, [navigate]);
 
-  // 3️⃣ Handle payment
+  // Handle payment
   const handlePayment = async () => {
     if (!razorpayReady) {
-      setError("Payment system not ready. Please wait.");
+      setError("Payment system is still loading. Please wait.");
       return;
     }
 
@@ -70,7 +73,6 @@ const Payment = () => {
     setError("");
 
     try {
-      // Create order
       const orderRes = await fetch(`${API_URL}/payments/create-order`, {
         method: "POST",
       });
@@ -82,7 +84,7 @@ const Payment = () => {
         currency: "INR",
         order_id: order.id,
         name: "Elyaitra",
-        description: "IA-2 Complete Access",
+        description: "Unlock Full Learning Access",
 
         handler: async (response: any) => {
           await fetch(`${API_URL}/payments/record`, {
@@ -109,42 +111,79 @@ const Payment = () => {
     }
   };
 
-  // UI
   if (checking) {
     return (
       <div className="min-h-screen flex items-center justify-center text-white">
-        Checking payment status...
+        Checking access…
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <div className="w-full max-w-md rounded-xl bg-white p-8 text-center">
-        <h1 className="text-2xl font-bold mb-2">IA-2 Complete Access</h1>
-        <p className="text-gray-600 mb-6">
-          One-time payment • No subscription
+    <div className="dark min-h-screen bg-background flex items-center justify-center px-4 py-12">
+      {/* Glow background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent blur-[120px]" />
+
+      <div className="relative z-10 w-full max-w-md glass-dark rounded-3xl p-8 text-center">
+        {/* Badge */}
+        <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-6">
+          <span className="text-sm font-medium text-primary">
+            One-Time Unlock
+          </span>
+        </div>
+
+        {/* Heading */}
+        <h1 className="text-3xl font-bold text-white mb-2">
+          Unlock Full Access
+        </h1>
+
+        <p className="text-muted-foreground mb-6">
+          Get unlimited access to all subjects, AI explanations, and exam-focused
+          answers.
         </p>
 
-        <div className="text-4xl font-extrabold mb-4">₹1</div>
+        {/* Price */}
+        <div className="mb-6">
+          <span className="text-5xl font-extrabold text-white">₹1</span>
+          <p className="text-sm text-muted-foreground mt-1">
+            Pay once • Lifetime access
+          </p>
+        </div>
+
+        {/* Benefits */}
+        <ul className="space-y-3 text-sm text-muted-foreground mb-6 text-left">
+          <li className="flex gap-2">
+            <span className="text-primary">✓</span> AI-powered explanations
+          </li>
+          <li className="flex gap-2">
+            <span className="text-primary">✓</span> Exam-oriented answers
+          </li>
+          <li className="flex gap-2">
+            <span className="text-primary">✓</span> All core subjects unlocked
+          </li>
+          <li className="flex gap-2">
+            <span className="text-primary">✓</span> No subscriptions, no renewals
+          </li>
+        </ul>
 
         {error && (
           <p className="text-sm text-red-500 mb-4">{error}</p>
         )}
 
+        {/* CTA */}
         <button
           onClick={handlePayment}
           disabled={loading || !razorpayReady}
-          className="w-full rounded-lg bg-black py-3 text-white font-semibold disabled:opacity-60"
+          className="w-full py-4 rounded-xl bg-primary text-primary-foreground font-semibold text-lg transition hover:brightness-110 disabled:opacity-60"
         >
           {loading
-            ? "Processing..."
+            ? "Processing payment…"
             : razorpayReady
-            ? "Pay & Continue"
-            : "Loading payment..."}
+            ? "Pay & Unlock Access"
+            : "Loading payment…"}
         </button>
 
-        <p className="mt-4 text-xs text-gray-500">
+        <p className="mt-4 text-xs text-muted-foreground">
           Secure payments powered by Razorpay
         </p>
       </div>

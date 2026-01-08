@@ -7,7 +7,10 @@ interface GetStartedButtonProps {
   children?: React.ReactNode;
 }
 
-const GetStartedButton = ({ className, children = "Get Started" }: GetStartedButtonProps) => {
+const GetStartedButton = ({
+  className,
+  children = "Get Started",
+}: GetStartedButtonProps) => {
   return (
     <Link
       to="/signup"
