@@ -4,8 +4,17 @@ from typing import List, Dict
 
 from app.ai_engine.retriever import retrieve
 from app.ai_engine.llm_client import GeminiClient
-from app.ai_engine.prompts import chat as chat_prompt
-from app.ai_engine.prompts import flashcards as flashcard_prompt
+import os
+def _load_prompt_file(filename: str) -> str:
+    base_dir = os.path.dirname(os.path.abspath(__file__))  # ai_engine/
+    prompt_path = os.path.join(base_dir, "prompts", filename)
+
+    if not os.path.exists(prompt_path):
+        raise RuntimeError(f"Prompt file not found: {prompt_path}")
+
+    with open(prompt_path, "r", encoding="utf-8") as f:
+        return f.read()
+
 
 
 ALLOWED_MODES = {"chat", "flowchart", "flashcard", "quiz"}
@@ -95,10 +104,10 @@ STUDENT INPUT:
 
     def _get_system_prompt(self, mode: str) -> str:
         if mode == "chat":
-            return chat_prompt.SYSTEM_PROMPT
+            return _load_prompt_file("chat.txt")
 
         if mode == "flashcard":
-            return flashcard_prompt.SYSTEM_PROMPT
+            return _load_prompt_file("flashcards.txt")
 
         if mode == "flowchart":
             return (
@@ -119,6 +128,7 @@ STUDENT INPUT:
             )
 
         return ""
+
 
     def _emit_events(self, mode: str) -> List[str]:
         if mode in {"chat", "flowchart"}:
