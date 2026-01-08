@@ -9,6 +9,7 @@ from app.api.access import router as access_router
 from app.api.content import router as content_router
 from app.api.ai import router as ai_router
 from app.db.init_db import init_db
+from app.api.admin import router as admin_router
 
 app = FastAPI(title="Elyaitra Backend", version="0.1.0")
 
@@ -30,19 +31,10 @@ app.add_middleware(
 # ---------------------------
 # STARTUP (FAST ONLY)
 # ---------------------------
-from app.ai_engine.ingest import ingest
-
 @app.on_event("startup")
 def startup_event():
     print("🚀 Backend started")
     init_db()
-
-    # 🔥 TEMP: Force ingestion on Railway
-    try:
-        ingest()
-    except Exception as e:
-        print("❌ INGEST ERROR:", e)
-
 
 # ---------------------------
 # ROUTERS
@@ -53,6 +45,7 @@ app.include_router(content_router)
 app.include_router(payments_router)
 app.include_router(access_router)
 app.include_router(ai_router)
+app.include_router(admin_router)
 
 # ---------------------------
 # LOCAL RUN
