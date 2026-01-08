@@ -174,7 +174,7 @@ export default function TutorPage() {
       });
   }, [activeTab, subject, unit]);
 
-  async function handleSend() {
+async function handleSend() {
   if (!input.trim()) return;
 
   const question = input;
@@ -188,6 +188,7 @@ export default function TutorPage() {
 
   try {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    const userId = getUserId();
 
     const res = await fetch(`${apiUrl}/ai/tutor`, {
       method: "POST",
@@ -195,8 +196,12 @@ export default function TutorPage() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        subject,
-        question,
+        user_id: userId ? Number(userId) : 1,
+        subject: subject,
+        unit: unit,
+        topic: unit,          // TEMP: topic = unit for now
+        mode: "chat",
+        message: question,
       }),
     });
 
@@ -219,6 +224,7 @@ export default function TutorPage() {
     ]);
   }
 }
+
 
 
   if (!subjectData) return null;
