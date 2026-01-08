@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 
 const API_URL = import.meta.env.VITE_API_URL;
 const RAZORPAY_KEY = import.meta.env.VITE_RAZORPAY_KEY_ID;
