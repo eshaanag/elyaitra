@@ -30,11 +30,19 @@ app.add_middleware(
 # ---------------------------
 # STARTUP (FAST ONLY)
 # ---------------------------
+from app.ai_engine.ingest import ingest
+
 @app.on_event("startup")
 def startup_event():
-    # ⚠️ KEEP STARTUP LIGHT
     print("🚀 Backend started")
-    init_db()  # DB table creation only
+    init_db()
+
+    # 🔥 TEMP: Force ingestion on Railway
+    try:
+        ingest()
+    except Exception as e:
+        print("❌ INGEST ERROR:", e)
+
 
 # ---------------------------
 # ROUTERS
