@@ -21,20 +21,30 @@ def embed(text: str) -> list[float]:
 
 
 def retrieve(question: str, subject: str, unit: int | None = None, k: int = 5):
-    """
-    Returns syllabus chunks filtered by subject + unit
-    """
     try:
+        print("🔍 RETRIEVE CALLED WITH:")
+        print("   subject =", subject)
+        print("   unit    =", unit)
+        print("   question=", question)
+
         collection = get_collection(subject)
 
         results = collection.query(
             query_embeddings=[embed(question)],
             n_results=k,
-            where={"unit": str(unit)}  # 🔥 MUST BE STRING
+            where={"unit": str(unit)}  # MUST be string
         )
 
-        return results.get("documents", [[]])[0]
+        print("📦 RAW CHROMA RESULTS:")
+        print(results)
+
+        docs = results.get("documents", [[]])[0]
+
+        print("📄 DOC COUNT:", len(docs))
+
+        return docs
 
     except Exception as e:
         print("❌ Retrieval error:", e)
         return []
+
