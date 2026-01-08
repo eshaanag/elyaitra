@@ -12,7 +12,7 @@ from app.api.ai import router as ai_router
 from app.db.init_db import init_db
 
 # 🔥 TEMP DEBUG: IMPORT INGEST
-from app.ai_engine.ingest import ingest
+# from app.ai_engine.ingest import ingest
 
 app = FastAPI(title="Elyaitra Backend", version="0.1.0")
 
@@ -40,11 +40,11 @@ def startup_event():
     init_db()
 
     # 🔥🔥🔥 TEMP: FORCE INGEST FOR DEBUG
-    print("🔥 CALLING INGEST FROM STARTUP 🔥")
-    try:
-        ingest()
-    except Exception as e:
-        print("❌ INGEST ERROR:", repr(e))
+    # print("🔥 CALLING INGEST FROM STARTUP 🔥")
+    # try:
+    #     ingest()
+    # except Exception as e:
+    #     print("❌ INGEST ERROR:", repr(e))
 
 # ---------------------------
 # ROUTERS
