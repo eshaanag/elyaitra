@@ -65,3 +65,15 @@ def tutor_endpoint(payload: TutorRequest):
             status_code=500,
             detail="Tutor engine failed to respond."
         )
+# --------------------------------------------------
+# TEMP ADMIN INGEST ENDPOINT (REMOVE AFTER USE)
+# --------------------------------------------------
+from app.ai_engine.ingest import ingest
+
+@router.post("/admin/ingest")
+def admin_ingest():
+    try:
+        ingest()
+        return {"status": "ok", "message": "Ingest completed"}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
