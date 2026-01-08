@@ -78,9 +78,9 @@ def embed(text: str) -> list[float]:
 # --------------------------------------------------
 def ingest():
     # Run only once
-    if os.path.exists(INGEST_FLAG):
-        print("✅ Syllabus already ingested. Skipping.")
-        return
+    # if os.path.exists(INGEST_FLAG):
+    #     print("✅ Syllabus already ingested. Skipping.")
+    #     return
 
     doc_id = 0
     files_processed = 0
@@ -117,8 +117,8 @@ def ingest():
             chunks_added += 1
 
     # Mark ingestion complete
-    with open(INGEST_FLAG, "w") as f:
-        f.write("done")
+    # with open(INGEST_FLAG, "w") as f:
+    #     f.write("done")
 
     print(f"✅ Re-indexing complete | files={files_processed}, chunks={chunks_added}")
     print("📊 FINAL CHROMA COUNT:", collection.count())
