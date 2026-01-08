@@ -30,7 +30,7 @@ app.add_middleware(
 # ---------------------------
 # STARTUP (FAST ONLY)
 # ---------------------------
-# from app.ai_engine.ingest import ingest
+from app.ai_engine.ingest import ingest
 
 @app.on_event("startup")
 def startup_event():
@@ -38,10 +38,10 @@ def startup_event():
     init_db()
 
     # 🔥 TEMP: Force ingestion on Railway
-    # try:
-    #     ingest()
-    # except Exception as e:
-    #     print("❌ INGEST ERROR:", e)
+    try:
+        ingest()
+    except Exception as e:
+        print("❌ INGEST ERROR:", e)
 
 
 # ---------------------------
