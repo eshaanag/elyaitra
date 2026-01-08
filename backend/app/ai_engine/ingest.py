@@ -5,8 +5,7 @@ import google.generativeai as genai
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 print("🔥🔥🔥 INGEST FUNCTION CALLED 🔥🔥🔥")
-print("CHROMA_PATH =", CHROMA_PATH)
-print("DATA_PATH =", DATA_PATH)
+
 
 # --------------------------------------------------
 # ENV
@@ -32,7 +31,8 @@ BACKEND_DIR = os.path.dirname(APP_DIR)                     # backend
 CHROMA_PATH = os.getenv("CHROMA_PATH", os.path.join(BASE_DIR, "storage"))
 
 DATA_PATH = os.path.join(BACKEND_DIR, "syllabus_data", SUBJECT)
-
+print("CHROMA_PATH =", CHROMA_PATH)
+print("DATA_PATH =", DATA_PATH)
 if not os.path.exists(DATA_PATH):
     raise RuntimeError(f"❌ syllabus_data not found at {DATA_PATH}")
 
@@ -121,8 +121,8 @@ def ingest():
         f.write("done")
 
     print(f"✅ Re-indexing complete | files={files_processed}, chunks={chunks_added}")
+    print("📊 FINAL CHROMA COUNT:", collection.count())
 
 
 if __name__ == "__main__":
     ingest()
-print("📊 FINAL CHROMA COUNT:", collection.count())
