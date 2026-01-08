@@ -4,6 +4,10 @@ from dotenv import load_dotenv
 import google.generativeai as genai
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
+print("🔥🔥🔥 INGEST FUNCTION CALLED 🔥🔥🔥")
+print("CHROMA_PATH =", CHROMA_PATH)
+print("DATA_PATH =", DATA_PATH)
+
 # --------------------------------------------------
 # ENV
 # --------------------------------------------------
@@ -121,3 +125,4 @@ def ingest():
 
 if __name__ == "__main__":
     ingest()
+print("📊 FINAL CHROMA COUNT:", collection.count())
