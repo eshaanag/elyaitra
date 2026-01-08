@@ -2,28 +2,18 @@ import os
 import chromadb
 from dotenv import load_dotenv
 import google.generativeai as genai
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 # --------------------------------------------------
 # ENV
 # --------------------------------------------------
 load_dotenv()
-import os
-from dotenv import load_dotenv
-
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
-ENV_PATH = os.path.join(BASE_DIR, ".env")
-
-load_dotenv(dotenv_path=ENV_PATH)
-
-print("📄 Loading env from:", ENV_PATH)
-print("🔑 GEMINI_API_KEY exists:", bool(os.getenv("GEMINI_API_KEY")))
 
 API_KEY = os.getenv("GEMINI_API_KEY")
 if not API_KEY:
     raise RuntimeError("❌ GEMINI_API_KEY not set")
 
-genai_client = genai.Client(api_key=API_KEY)
+genai.configure(api_key=API_KEY)
 
 SUBJECT = "chemistry"
 
@@ -34,7 +24,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))      # backend/app/ai_engi
 APP_DIR = os.path.dirname(BASE_DIR)                        # backend/app
 BACKEND_DIR = os.path.dirname(APP_DIR)                     # backend
 
-# ✅ Railway persistent path (fallback to local)
+# Railway persistent path (fallback to local)
 CHROMA_PATH = os.getenv("CHROMA_PATH", os.path.join(BASE_DIR, "storage"))
 
 DATA_PATH = os.path.join(BACKEND_DIR, "syllabus_data", SUBJECT)
@@ -49,7 +39,7 @@ print("📁 Data path:", DATA_PATH)
 print("📄 Files found:", os.listdir(DATA_PATH))
 
 # --------------------------------------------------
-# INGESTION GUARD (CRITICAL)
+# INGESTION GUARD
 # --------------------------------------------------
 INGEST_FLAG = os.path.join(CHROMA_PATH, ".ingested")
 
@@ -58,9 +48,8 @@ INGEST_FLAG = os.path.join(CHROMA_PATH, ".ingested")
 # --------------------------------------------------
 os.environ["ANONYMIZED_TELEMETRY"] = "false"
 
-chroma_client = chromadb.PersistentClient(path=CHROMA_PATH)
-collection = chroma_client.get_or_create_collection(name=SUBJECT)
-
+client = chromadb.PersistentClient(path=CHROMA_PATH)
+collection = client.get_or_create_collection(name=SUBJECT)
 
 # --------------------------------------------------
 # SPLITTER
@@ -71,21 +60,20 @@ splitter = RecursiveCharacterTextSplitter(
 )
 
 # --------------------------------------------------
-# EMBEDDING
+# EMBEDDING FUNCTION (SAME AS RETRIEVER)
 # --------------------------------------------------
 def embed(text: str) -> list[float]:
-    response = genai_client.embed_content(
-        model="text-embedding-004",
+    result = genai.embed_content(
+        model="models/text-embedding-004",
         content=text
     )
-    return response["embedding"]
-
+    return result["embedding"]
 
 # --------------------------------------------------
 # INGEST
 # --------------------------------------------------
 def ingest():
-    # ✅ Run ONLY once
+    # Run only once
     if os.path.exists(INGEST_FLAG):
         print("✅ Syllabus already ingested. Skipping.")
         return
@@ -116,7 +104,7 @@ def ingest():
                 embeddings=[embed(chunk)],
                 metadatas=[{
                     "subject": SUBJECT,
-                    "unit": str(unit),   # ✅ store as STRING
+                    "unit": str(unit),
                     "source": file
                 }],
                 ids=[f"{SUBJECT}_{doc_id}"]
@@ -124,7 +112,7 @@ def ingest():
             doc_id += 1
             chunks_added += 1
 
-    # ✅ Mark ingestion complete
+    # Mark ingestion complete
     with open(INGEST_FLAG, "w") as f:
         f.write("done")
 
