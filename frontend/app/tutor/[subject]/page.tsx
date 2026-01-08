@@ -189,7 +189,7 @@ export default function TutorPage() {
   try {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
-    const res = await fetch(`${apiUrl}/ai/chat`, {
+    const res = await fetch(`${apiUrl}/ai/tutor`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
