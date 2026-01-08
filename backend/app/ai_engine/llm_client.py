@@ -13,25 +13,28 @@ genai.configure(api_key=API_KEY)
 
 class GeminiClient:
     def __init__(self):
-        print("🤖 Using Gemini model: models/gemini-pro")
-        # ✅ This model works on ALL Gemini API keys
-        self.model = genai.GenerativeModel("models/gemini-pro")
+        # ✅ Gemini 2.5 Flash (fast + cheap + available)
+        self.model = genai.GenerativeModel("models/gemini-2.5-flash")
 
     def generate(self, prompt: str) -> str:
         try:
             response = self.model.generate_content(prompt)
 
+            # Normal case
             if hasattr(response, "text") and response.text:
                 return response.text.strip()
 
+            # Fallback parsing
             if hasattr(response, "candidates") and response.candidates:
-                parts = response.candidates[0].content.parts
-                if parts and hasattr(parts[0], "text"):
-                    return parts[0].text.strip()
+                cand = response.candidates[0]
+                if hasattr(cand, "content") and hasattr(cand.content, "parts"):
+                    parts = cand.content.parts
+                    if parts and hasattr(parts[0], "text"):
+                        return parts[0].text.strip()
 
-            print("⚠️ Unknown Gemini response:", response)
-            return "The AI returned an empty response."
+            print("⚠️ Gemini returned empty response:", response)
+            return "The AI model returned an empty response."
 
         except Exception as e:
             print("❌ GEMINI ERROR:", repr(e))
-            return "The AI model is temporarily unavailable."
+            return "The AI model is temporarily unavailable. Please try again."
