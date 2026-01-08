@@ -8,6 +8,7 @@ from app.api.payments import router as payments_router
 from app.api.access import router as access_router
 from app.api.content import router as content_router
 from app.api.ai import router as ai_router
+from app.api.admin import router as admin_router
 
 from app.db.init_db import init_db
 
@@ -55,6 +56,8 @@ app.include_router(content_router)
 app.include_router(payments_router)
 app.include_router(access_router)
 app.include_router(ai_router)
+app.include_router(admin_router)
+
 
 # ---------------------------
 # LOCAL RUN
