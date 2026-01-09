@@ -9,6 +9,7 @@ from app.api.access import router as access_router
 from app.api.content import router as content_router
 from app.api.ai import router as ai_router
 from app.api.admin import router as admin_router
+from app.api.flashcards import router as flashcards_router
 
 from app.db.init_db import init_db
 
@@ -59,6 +60,7 @@ app.include_router(payments_router)
 app.include_router(access_router)
 app.include_router(ai_router)
 app.include_router(admin_router)
+app.include_router(flashcards_router)
 
 
 # ---------------------------
