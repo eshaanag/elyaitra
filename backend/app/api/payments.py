@@ -43,7 +43,7 @@ def create_order():
     order = client.order.create({
         "amount": amount_paise,
         "currency": "INR",
-        "payment_capture": 29.01
+        "payment_capture": True
     })
 
     return order
