@@ -1,16 +1,16 @@
-"use client";
+// "use client";
 
-import dynamic from "next/dynamic";
+// import dynamic from "next/dynamic";
 
-const ReactLanding = dynamic(
-  () => import("../react-landing/App"),
-  { ssr: false }
-);
+// const ReactLanding = dynamic(
+//   () => import("../react-landing/App"),
+//   { ssr: false }
+// );
 
 
-export default function Page() {
-  return <ReactLanding />;
-}
+// export default function Page() {
+//   return <ReactLanding />;
+// }
 
 // "use client";
 

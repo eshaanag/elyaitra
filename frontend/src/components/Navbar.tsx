@@ -35,7 +35,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 py-4">
+    <nav className="fixed top-0 inset-x-0 z-50 bg-background/80 backdrop-blur border-b px-4 sm:px-6">
       <div className="max-w-6xl mx-auto">
         <div
           className={cn(
@@ -47,13 +47,12 @@ const Navbar = () => {
           )}
         >
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold">E</span>
-            </div>
-            <span className="text-lg font-bold text-white hidden sm:inline">
-              Elyai<span className="text-primary">tra</span>
-            </span>
+          <Link to="/" className="flex items-center">
+            <img
+              src="/elyaltra-text-logo.png"
+              alt="Elyaitra"
+              className="h-9 w-auto"
+            />
           </Link>
 
           {/* Desktop Nav */}
