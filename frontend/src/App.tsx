@@ -12,6 +12,8 @@ import Signup from "./pages/Signup";
 import Payment from "./pages/Payment";
 // import ForgotPassword from "./pages/ForgotPassword";
 import NotFound from "./pages/NotFound";
+import Tutor from "./pages/Tutor";
+
 
 const queryClient = new QueryClient();
 
@@ -25,6 +27,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/features" element={<Features />} />
           <Route path="/subjects" element={<Subjects />} />
+          <Route path="/tutor/:subject" element={<Tutor />} />
           <Route path="/payment" element={<Payment />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
