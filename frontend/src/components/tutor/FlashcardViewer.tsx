@@ -21,11 +21,11 @@ interface Flashcard {
 }
 
 const mockFlashcards: Flashcard[] = [
-  { id: "1", front: "What is Machine Learning?", back: "Machine Learning is a subset of AI that enables systems to learn and improve from experience without being explicitly programmed.", status: "unknown" },
-  { id: "2", front: "Define Supervised Learning", back: "Supervised learning is a type of ML where the model learns from labeled training data to make predictions or decisions.", status: "unknown" },
-  { id: "3", front: "What is a Neural Network?", back: "A neural network is a computing system inspired by biological neural networks, consisting of interconnected nodes (neurons) organized in layers.", status: "unknown" },
-  { id: "4", front: "Explain Gradient Descent", back: "Gradient descent is an optimization algorithm used to minimize a loss function by iteratively moving towards the steepest descent direction.", status: "unknown" },
-  { id: "5", front: "What is Overfitting?", back: "Overfitting occurs when a model learns the training data too well, including noise and outliers, leading to poor generalization on new data.", status: "unknown" },
+  { id: "1", front: "Second generation solar cells are commonly known as _____ solar cells.", back: "thin-film solar cells", status: "unknown" },
+  { id: "2", front: "How are thin-film solar cells constructed?", back: "They are made by depositing one or more very thin layers of photovoltaic materials onto substrates like glass, plastic, or metal.", status: "unknown" },
+  { id: "3", front: "What is a key advantage of the thin-film construction of second generation solar cells?", back: "t reduces material use and allows for the creation of flexible and lightweight solar panels.", status: "unknown" },
+  { id: "4", front: "What is the main technological goal of third generation solar cells?", back: "They are designed to surpass the efficiency and cost limitations of earlier generations, aiming to break the Shockley-Queisser limit.", status: "unknown" },
+  { id: "5", front: "How do Dye-Sensitized Solar Cells (DSSCs) function to generate charge?", back: "They use a photosensitive dye to capture sunlight and create electron-hole pairs, often with a semiconductor like titanium dioxide.", status: "unknown" },
 ];
 
 const FlashcardViewer = () => {
