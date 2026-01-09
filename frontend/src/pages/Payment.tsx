@@ -97,7 +97,7 @@ const Payment = () => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               user_id: Number(localStorage.getItem("user_id")),
-              amount: 1,
+              amount: 29.01,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_order_id: response.razorpay_order_id,
               razorpay_signature: response.razorpay_signature,
