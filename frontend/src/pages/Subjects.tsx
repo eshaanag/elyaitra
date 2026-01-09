@@ -117,12 +117,30 @@ const Subjects = () => {
                 className="relative text-left p-8 rounded-2xl border border-border/50 bg-card/30 hover:border-primary/50 hover:bg-card/50 transition-all"
               >
                 {!hasAccess && (
-                  <div className="absolute inset-0 rounded-2xl bg-black/50 flex items-center justify-center text-white font-semibold">
-                    Unlock to access
-                  </div>
-                )}
+                <div className="absolute inset-0 z-10 rounded-2xl bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center text-white text-center">
+                  <span className="text-lg font-semibold">Unlock to access</span>
+                  <span className="text-sm text-white/70 mt-1">
+                    Premium content
+                  </span>
 
-                <div className="flex gap-4 relative">
+                  {/* 🔓 Unlock Button */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation(); // prevent card click
+                      navigate("/payment");
+                    }}
+                    className="mt-4 px-5 py-2 rounded-full bg-primary text-white text-sm font-medium hover:bg-primary/90 transition"
+                  >
+                    Unlock Now
+                  </button>
+                </div>
+              )}
+                <div
+                  className={`flex gap-4 relative transition-all ${
+                    !hasAccess ? "blur-md pointer-events-none select-none" : ""
+                  }`}
+                >
                   <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
                     <Icon className="w-6 h-6 text-primary" />
                   </div>
