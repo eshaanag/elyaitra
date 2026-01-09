@@ -149,7 +149,7 @@ const Payment = () => {
 
         {/* Price */}
         <div className="mb-6">
-          <span className="text-5xl font-extrabold text-white">₹1</span>
+          <span className="text-5xl font-extrabold text-white">₹29.01</span>
           <p className="text-sm text-muted-foreground mt-1">
             Pay once • Lifetime access
           </p>
